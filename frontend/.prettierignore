@@ -1,0 +1,29 @@
+# Ignore artifacts:
+build
+dist
+out
+coverage
+.next
+.nuxt
+
+# Ignore node_modules:
+node_modules
+
+# Ignore environments:
+.env
+.env.*
+!.env.example
+
+# Ignore OS files:
+.DS_Store
+
+# Ignore Python specific:
+__pycache__
+*.pyc
+venv
+.venv
+
+# Ignore lock files:
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

@@ -1,0 +1,29 @@
+import mongoose, { Schema, Document } from 'mongoose';
+
+export interface IUser extends Document {
+  email: string;
+  passwordHash: string;
+  firstName?: string;
+  lastName?: string;
+  isEmailVerified: boolean;
+  knownDevices: string[];
+  subscriptionTier: 'free' | 'pro';
+  stripeCustomerId?: string;
+  isAdmin: boolean;
+  createdAt: Date;
+}
+
+const UserSchema: Schema = new Schema({
+  email: { type: String, required: true, unique: true },
+  passwordHash: { type: String, required: true },
+  firstName: { type: String },
+  lastName: { type: String },
+  isEmailVerified: { type: Boolean, default: false },
+  knownDevices: [{ type: String }],
+  subscriptionTier: { type: String, enum: ['free', 'pro'], default: 'free' },
+  stripeCustomerId: { type: String },
+  isAdmin: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
+});
+
+export default mongoose.model<IUser>('User', UserSchema);
