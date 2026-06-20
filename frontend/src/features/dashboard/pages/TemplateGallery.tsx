@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEditorStore } from "../../../shared/hooks/useEditorStore";
-import { templates as hardcodedTemplates } from "../../../data/templates";
+import { resumeTemplates as hardcodedTemplates } from "../../../data/templates";
 import { FileText, ArrowRight } from "lucide-react";
 
 export function TemplateGallery() {

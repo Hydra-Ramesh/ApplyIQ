@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-import { Bot, Sparkles, Zap, ShieldCheck, MapPin, Mail, Phone, Star, Quote, FileText, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Bot, Sparkles, Zap, ShieldCheck, MapPin, Mail, Phone, Star, FileText, CheckCircle2, ArrowRight } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 

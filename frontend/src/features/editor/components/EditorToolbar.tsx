@@ -1,4 +1,4 @@
-import { Play, Download, Save, LayoutTemplate, Sparkles, Flame, Mail, Activity } from "lucide-react";
+import { Play, Download, Save, Sparkles, Flame, Mail, Activity } from "lucide-react";
 import { useState } from "react";
 import { JobTailorModal } from "./JobTailorModal";
 import { RoastModal } from "./RoastModal";

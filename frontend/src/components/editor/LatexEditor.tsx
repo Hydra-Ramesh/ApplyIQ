@@ -32,7 +32,7 @@ export const LatexEditor = React.memo(({ value, onChange }: LatexEditorProps) =>
 
       // Register the Copilot Ghost Text Provider
       providerRef.current = monaco.languages.registerInlineCompletionsProvider("latex", {
-        provideInlineCompletions: async (model, position, context, token) => {
+        provideInlineCompletions: async (model: any, position: any, _context: any, _token: any) => {
           // Get the current line text up to the cursor
           const currentLine = model.getLineContent(position.lineNumber);
           const prefix = currentLine.substring(0, position.column - 1);
@@ -79,7 +79,7 @@ export const LatexEditor = React.memo(({ value, onChange }: LatexEditorProps) =>
           return { items: [] };
         },
         freeInlineCompletions: () => {},
-      });
+      } as any);
     }
 
     return () => {

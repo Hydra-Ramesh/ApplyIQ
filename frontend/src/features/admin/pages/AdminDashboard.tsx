@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuthStore } from "@/shared/hooks/useAuthStore";
-import { Shield, Users, FileText, Plus, Copy, Trash, ExternalLink } from "lucide-react";
+import { Shield, Users, FileText, Plus, Copy, Trash } from "lucide-react";
 
 interface UserData {
   _id: string;
@@ -41,7 +41,7 @@ export function AdminDashboard() {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!user?.isAdmin) return <Navigate to="/dashboard" replace />;
 
-  const handleViewResumes = (userId: string, email: string) => {
+  const handleViewResumes = (_userId: string, email: string) => {
     // Mock fetching resumes
     setSelectedUserEmail(email);
     setSelectedUserResumes([

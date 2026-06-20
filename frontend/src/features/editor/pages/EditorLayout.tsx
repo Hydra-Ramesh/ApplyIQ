@@ -9,8 +9,8 @@ import { useEditorStore } from "../../../shared/hooks/useEditorStore";
 export function EditorLayout() {
   const { code, setCode } = useEditorStore();
   const [isCompiling, setIsCompiling] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [showCopilot, setShowCopilot] = useState(true);
+  const [pdfUrl] = useState<string | null>(null);
+  const showCopilot = true;
   const workerRef = useRef<Worker | null>(null);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export function EditorLayout() {
       />
 
       <div className="flex-1 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal">
+        <ResizablePanelGroup orientation="horizontal">
           {showCopilot && (
             <>
               <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
