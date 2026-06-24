@@ -41,7 +41,7 @@ export function NewResumeWizard() {
         customSections
       };
       
-      const response = await fetch('http://localhost:8000/api/v1/resume/generate', {
+      const response = await fetch(`${import.meta.env.VITE_AI_URL}/api/v1/resume/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ form_data: payload })

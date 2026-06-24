@@ -25,7 +25,7 @@ export function ColdEmailModal({ isOpen, onClose }: Props) {
     setIsCopied(false);
 
     try {
-      const response = await fetch('http://localhost:8000/resume/cold-email-stream', {
+      const response = await fetch(`${import.meta.env.VITE_AI_URL}/resume/cold-email-stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tex_code: code, target_info: targetInfo }),

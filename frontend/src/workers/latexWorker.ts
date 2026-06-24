@@ -5,7 +5,7 @@ self.onmessage = async (e) => {
   const { texCode, images } = e.data;
   
   try {
-    const response = await fetch('http://localhost:8000/api/v1/resume/compile', {
+    const response = await fetch(`${import.meta.env.VITE_AI_URL}/api/v1/resume/compile`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

@@ -10,7 +10,7 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().min(1),
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
-  CHECKOUT_URL: z.string().url().default('http://localhost:5173/dashboard'),
+  CHECKOUT_URL: z.string().url().default('https://apply-iq-vozm.vercel.app/dashboard'),
 });
 
 const _env = envSchema.safeParse(process.env);

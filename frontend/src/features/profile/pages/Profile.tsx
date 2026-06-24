@@ -35,7 +35,7 @@ export function Profile() {
     formData.append("avatar", file);
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/me/avatar", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me/avatar`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -62,7 +62,7 @@ export function Profile() {
     setNameMessage("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/me", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -92,7 +92,7 @@ export function Profile() {
     setPasswordMessage("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/change-password", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/change-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -117,7 +117,7 @@ export function Profile() {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:5000/api/auth/logout", {
+      await fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
         method: "POST",
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });

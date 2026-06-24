@@ -13,7 +13,7 @@ export function TemplateGallery() {
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/templates');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/templates`);
         if (res.ok) {
           const data = await res.json();
           // Map DB models to expected UI format

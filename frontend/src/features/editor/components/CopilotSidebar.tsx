@@ -37,7 +37,7 @@ export function CopilotSidebar() {
     setIsProcessing(true);
 
     try {
-      const res = await fetch('http://localhost:8000/api/v1/resume/copilot', {
+      const res = await fetch(`${import.meta.env.VITE_AI_URL}/api/v1/resume/copilot`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tex_code: code, instruction: userMsg })

@@ -22,7 +22,7 @@ export function RoastModal({ isOpen, onClose }: Props) {
     setRoast(null);
 
     try {
-      const response = await fetch('http://localhost:8000/resume/roast-stream', {
+      const response = await fetch(`${import.meta.env.VITE_AI_URL}/resume/roast-stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tex_code: code }),
