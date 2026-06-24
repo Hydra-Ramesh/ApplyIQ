@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+import os
+
 load_dotenv() # Load variables from .env BEFORE creating the app
 
 from modules.resume_builder.router import router as builder_router
@@ -9,9 +11,10 @@ from modules.quality_checker.router import router as quality_router
 app = FastAPI(title="ApplyIQ - AI Service")
 
 # Configure CORS
+frontend_url = os.getenv("FRONTEND_URL", "https://apply-iq-vozm.vercel.app")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[frontend_url, "http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

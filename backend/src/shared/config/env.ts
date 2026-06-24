@@ -11,6 +11,8 @@ const envSchema = z.object({
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   CHECKOUT_URL: z.string().url().default('https://apply-iq-vozm.vercel.app/dashboard'),
+  FRONTEND_URL: z.string().url().default('https://apply-iq-vozm.vercel.app'),
+  AI_SERVICE_URL: z.string().url().default('https://applyiq-ai-service.onrender.com'),
 });
 
 const _env = envSchema.safeParse(process.env);
