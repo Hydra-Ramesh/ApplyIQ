@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FileText, Settings, User } from "lucide-react";
+import { LayoutDashboard, Settings, User } from "lucide-react";
 import { useAuthStore } from "@/shared/hooks/useAuthStore";
 
 export function BaseLayout() {

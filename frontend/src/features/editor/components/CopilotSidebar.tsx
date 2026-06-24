@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useEditorStore, DEFAULT_GREETING } from "../../../shared/hooks/useEditorStore";
 import { Send, Bot, Sparkles, Loader2, Trash } from "lucide-react";
 import { updateResume } from "../../dashboard/api/resume.api";

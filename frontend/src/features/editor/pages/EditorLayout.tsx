@@ -25,7 +25,6 @@ export function EditorLayout() {
   const [showCopilot, setShowCopilot] = useState(true);
   const workerRef = useRef<Worker | null>(null);
   const editorRef = useRef<any>(null);
-  const copilotPanelRef = useRef<any>(null);
 
   useEffect(() => {
     workerRef.current = new Worker(new URL('../../../workers/latexWorker.ts', import.meta.url), {
@@ -64,7 +63,7 @@ export function EditorLayout() {
         } else {
           useEditorStore.getState().setChatHistory([ { role: 'assistant', content: "Hi! I'm your AI Copilot. How would you like to customize this template? (e.g. 'Make the font smaller', 'Add a Skills section')" } ]);
         }
-      }).catch(e => {
+      }).catch(_e => {
         toast.error("Failed to load resume");
       });
     } else if (!resumeIdParam && currentResumeId) {
@@ -160,11 +159,11 @@ export function EditorLayout() {
       />
 
       <div className="flex-1 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal">
+        <ResizablePanelGroup orientation="horizontal">
           {showCopilot && (
             <ResizablePanel 
               id="copilot"
-              order={1}
+              
               defaultSize={15} 
               minSize={10} 
               className="z-20 border-white/10"
@@ -177,13 +176,13 @@ export function EditorLayout() {
           
           {showCopilot && <ResizableHandle withHandle />}
 
-          <ResizablePanel id="editor" order={2} defaultSize={40} minSize={10}>
+          <ResizablePanel id="editor" defaultSize={40} minSize={10}>
             <LatexEditor value={code} onChange={(v) => setCode(v || '')} onEditorMount={(editor) => editorRef.current = editor} />
           </ResizablePanel>
           
           <ResizableHandle />
           
-          <ResizablePanel id="preview" order={3} defaultSize={40} minSize={10}>
+          <ResizablePanel id="preview" defaultSize={40} minSize={10}>
             <PdfPreview isCompiling={isCompiling} pdfUrl={pdfUrl} />
           </ResizablePanel>
         </ResizablePanelGroup>
