@@ -11,9 +11,10 @@ const METRIC_REGEX = /\\b\\d+(?:\\.\\d+)?%?\\b|\\$[0-9]+(?:[a-zA-Z]+)?/g;
 interface LatexEditorProps {
   value: string;
   onChange: (value: string | undefined) => void;
+  onEditorMount?: (editor: any) => void;
 }
 
-export const LatexEditor = React.memo(({ value, onChange }: LatexEditorProps) => {
+export const LatexEditor = React.memo(({ value, onChange, onEditorMount }: LatexEditorProps) => {
   const monaco = useMonaco();
   const providerRef = useRef<any>(null);
   const editorInstanceRef = useRef<any>(null);
@@ -118,7 +119,7 @@ export const LatexEditor = React.memo(({ value, onChange }: LatexEditorProps) =>
               (index + word.length === lowerLine.length || !/[a-z]/.test(lowerLine[index + word.length]))) {
             decorations.push({
               range: new monaco.Range(lineNumber, index + 1, lineNumber, index + 1 + word.length),
-              options: { inlineClassName: 'bg-green-500/30 text-green-200 border-b-2 border-green-500 font-bold px-1 rounded-sm' }
+              options: { inlineClassName: '!bg-green-500/40 !text-green-300 !font-bold !border-b-2 !border-green-500 rounded-sm' }
             });
           }
           index = lowerLine.indexOf(word, index + 1);
@@ -131,7 +132,7 @@ export const LatexEditor = React.memo(({ value, onChange }: LatexEditorProps) =>
         while (index !== -1) {
           decorations.push({
             range: new monaco.Range(lineNumber, index + 1, lineNumber, index + 1 + word.length),
-            options: { inlineClassName: 'bg-red-500/30 text-red-200 border-b-2 border-red-500 font-bold px-1 rounded-sm' }
+            options: { inlineClassName: '!bg-red-500/40 !text-red-300 !font-bold !border-b-2 !border-red-500 rounded-sm' }
           });
           index = lowerLine.indexOf(word, index + 1);
         }
@@ -142,7 +143,7 @@ export const LatexEditor = React.memo(({ value, onChange }: LatexEditorProps) =>
       while ((match = METRIC_REGEX.exec(line)) !== null) {
         decorations.push({
           range: new monaco.Range(lineNumber, match.index + 1, lineNumber, match.index + 1 + match[0].length),
-          options: { inlineClassName: 'bg-blue-500/30 text-blue-200 border-b-2 border-blue-500 font-bold px-1 rounded-sm' }
+          options: { inlineClassName: '!bg-blue-500/40 !text-blue-300 !font-bold !border-b-2 !border-blue-500 rounded-sm' }
         });
       }
       // reset regex state
@@ -153,12 +154,27 @@ export const LatexEditor = React.memo(({ value, onChange }: LatexEditorProps) =>
 
   }, [value, isHeatmapActive, monaco]);
 
-  const handleEditorDidMount = (editor: any) => {
+  const handleEditorDidMount = (editor: any, monaco: any) => {
     editorInstanceRef.current = editor;
+    
+    // Define a custom transparent theme
+    monaco.editor.defineTheme('glassmorphism', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [],
+      colors: {
+        'editor.background': '#00000000', // transparent
+      }
+    });
+    monaco.editor.setTheme('glassmorphism');
+    
+    if (onEditorMount) {
+      onEditorMount(editor);
+    }
   };
 
   return (
-    <div className="h-full w-full border-r border-slate-800 relative bg-slate-950">
+    <div className="h-full w-full border-r border-white/10 relative bg-slate-950/20 backdrop-blur-xl">
       <Editor
         height="100%"
         defaultLanguage="latex"

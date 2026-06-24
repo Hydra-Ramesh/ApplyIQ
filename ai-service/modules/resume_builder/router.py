@@ -3,7 +3,7 @@ from pydantic import BaseModel
 import hashlib
 from fastapi.responses import StreamingResponse
 from .orchestrator import rewrite_bullet, optimize_ats, tailor_resume, autocomplete_text, roast_resume, generate_cold_email, stream_roast, stream_cold_email, generate_resume, copilot_edit
-from ...core.redis_client import redis_cache
+from core.redis_client import redis_cache
 from typing import Dict, Any
 
 router = APIRouter(prefix="/resume", tags=["Resume Builder"])
@@ -149,7 +149,7 @@ async def api_generate_resume(req: ResumeGenerateRequest):
         # Generate hash of form data to cache identical requests
         import json
         form_str = json.dumps(req.form_data, sort_keys=True)
-        cache_key = generate_cache_key("generate", form_str)
+        cache_key = generate_cache_key("generate_v4", form_str)
         cached_result = redis_cache.get(cache_key)
         
         if cached_result:
@@ -172,5 +172,80 @@ async def api_copilot_edit(req: CopilotRequest):
         # Don't cache copilot responses as they are highly dynamic
         result = copilot_edit(req.tex_code, req.instruction)
         return {"tex_code": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+from typing import Dict, Any, Optional
+
+class CompileRequest(BaseModel):
+    tex_code: str
+    images: Optional[Dict[str, str]] = {}
+
+@router.post("/compile")
+async def api_compile_latex(req: CompileRequest):
+    try:
+        import httpx
+        from fastapi.responses import Response
+        import asyncio
+        
+        async with httpx.AsyncClient(follow_redirects=True) as client:
+            # 1. Prepare files payload as a list of tuples to support duplicate keys
+            import re
+            # Automatically strip out duplicate fontawesome package if it's there
+            clean_tex_code = re.sub(r'\\(?:RequirePackage|usepackage)\{fontawesome\}', '', req.tex_code)
+            
+            # Automatically strip out mistakenly added \\ at the end of \resumeItem
+            clean_lines = []
+            for line in clean_tex_code.split('\n'):
+                if r'\resumeItem' in line:
+                    line = re.sub(r'\\\\\s*$', '', line.rstrip())
+                clean_lines.append(line)
+            clean_tex_code = '\n'.join(clean_lines)
+            
+            files_payload = [
+                ("filecontents[]", (None, clean_tex_code.encode('utf-8'))),
+                ("filename[]", (None, "document.tex")),
+                ("engine", (None, "pdflatex")),
+                ("return", (None, "pdf"))
+            ]
+            
+            # 2. Fetch all requested images concurrently
+            if req.images:
+                # Create tasks for downloading each image
+                async def fetch_image(filename: str, url: str):
+                    try:
+                        img_response = await client.get(url, timeout=10.0)
+                        if img_response.status_code == 200:
+                            return filename, img_response.content
+                        else:
+                            print(f"Failed to fetch image {filename} from {url}: HTTP {img_response.status_code}")
+                            return filename, None
+                    except Exception as e:
+                        print(f"Error fetching image {filename} from {url}: {e}")
+                        return filename, None
+
+                tasks = [fetch_image(fname, url) for fname, url in req.images.items()]
+                results = await asyncio.gather(*tasks)
+                
+                # Append successfully fetched images to the payload
+                for filename, content in results:
+                    if content:
+                        files_payload.append(("filecontents[]", (None, content)))
+                        files_payload.append(("filename[]", (None, filename)))
+
+            # 3. Send the payload to texlive.net
+            response = await client.post(
+                "https://texlive.net/cgi-bin/latexcgi",
+                files=files_payload,
+                timeout=30.0
+            )
+            
+        if response.status_code == 200 and response.headers.get("content-type") == "application/pdf":
+            return Response(content=response.content, media_type="application/pdf")
+        else:
+            print("LATEX COMPILE ERROR LOG:", response.text)
+            raise HTTPException(status_code=400, detail="Compilation failed. Check backend logs for LaTeX errors.")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

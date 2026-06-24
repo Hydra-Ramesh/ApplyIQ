@@ -4,12 +4,13 @@ dotenv.config();
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.string().transform(Number).default('5000'),
+  PORT: z.coerce.number().default(5000),
   MONGO_URI: z.string().url(),
   JWT_SECRET: z.string().min(10),
   RESEND_API_KEY: z.string().min(1),
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+  CHECKOUT_URL: z.string().url().default('http://localhost:5173/dashboard'),
 });
 
 const _env = envSchema.safeParse(process.env);

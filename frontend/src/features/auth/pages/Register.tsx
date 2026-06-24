@@ -8,18 +8,34 @@ export function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
 
-    // Mock API call to register then verify email
-    setTimeout(() => {
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Registration failed");
+      }
+
+      // Redirect to email verification page
+      navigate(`/verify-email?email=${encodeURIComponent(email)}`);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
+    } finally {
       setIsLoading(false);
-      // Route the user to the verify email page to preview the flow
-      navigate("/verify-email", { state: { email } });
-    }, 1500);
+    }
   };
 
   return (
@@ -42,6 +58,11 @@ export function Register() {
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {error && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm text-center">
+              {error}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-white/80 mb-2">Full Name</label>
             <div className="relative">

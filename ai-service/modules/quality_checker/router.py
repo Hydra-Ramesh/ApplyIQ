@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import hashlib
 from .engine import check_resume_quality
-from ...core.redis_client import redis_cache
+from core.redis_client import redis_cache
 
 router = APIRouter(prefix="/quality", tags=["Quality Checker"])
 

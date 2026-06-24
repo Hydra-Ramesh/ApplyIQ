@@ -69,6 +69,114 @@ COLD_EMAIL_PROMPT = PromptTemplate.from_template(
     "Cold Email Draft:"
 )
 
+LATEX_PREAMBLE = r"""
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\usepackage{graphicx}
+\setlength{\multicolsep}{-3.0pt}
+\setlength{\columnsep}{-1pt}
+
+\RequirePackage{tikz}
+\RequirePackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{svg.path}
+
+\definecolor{cvblue}{HTML}{0E5484}
+\definecolor{black}{HTML}{130810}
+\definecolor{darkcolor}{HTML}{0F4539}
+\definecolor{cvgreen}{HTML}{3BD80D}
+\definecolor{taggreen}{HTML}{00E278}
+\definecolor{SlateGrey}{HTML}{2E2E2E}
+\definecolor{LightGrey}{HTML}{666666}
+\colorlet{name}{black}
+\colorlet{tagline}{darkcolor}
+\colorlet{heading}{darkcolor}
+\colorlet{headingrule}{cvblue}
+\colorlet{accent}{darkcolor}
+\colorlet{emphasis}{SlateGrey}
+\colorlet{body}{LightGrey}
+
+\addtolength{\oddsidemargin}{-0.6in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1.19in}
+\addtolength{\topmargin}{-.7in}
+\addtolength{\textheight}{1.4in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+\pdfgentounicode=1
+
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\classesList}[4]{
+    \item\small{
+        {#1 #2 #3 #4 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{\large#1} & \textbf{\small #2} \\
+      \textit{\large#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{1.001\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & \textbf{\small #2}\\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemi{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.0in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+\newcommand\sbullet[1][.5]{\mathbin{\vcenter{\hbox{\scalebox{#1}{$\bullet$}}}}}
+
+\begin{document}
+"""
+
+LATEX_PREAMBLE_ESCAPED = LATEX_PREAMBLE.replace("{", "{{").replace("}", "}}")
+
 GENERATE_RESUME_PROMPT = PromptTemplate.from_template(
     "You are an elite LaTeX resume generator. "
     "I will provide you with a JSON object containing a user's personal information, "
@@ -81,66 +189,14 @@ GENERATE_RESUME_PROMPT = PromptTemplate.from_template(
     "RETURN ONLY THE COMPILED LATEX CODE. DO NOT ADD ANY MARKDOWN BACKTICKS, EXPLANATIONS, OR PREAMBLES. "
     "RETURN RAW TEXT ONLY.\n\n"
     "--- LATEX TEMPLATE PREAMBLE AND MACROS (USE EXACTLY THIS) ---\n"
-    "\\documentclass[letterpaper,11pt]{article}\n"
-    "\\usepackage{latexsym}\n"
-    "\\usepackage[empty]{fullpage}\n"
-    "\\usepackage{titlesec}\n"
-    "\\usepackage{marvosym}\n"
-    "\\usepackage[usenames,dvipsnames]{color}\n"
-    "\\usepackage{verbatim}\n"
-    "\\usepackage{enumitem}\n"
-    "\\usepackage[hidelinks]{hyperref}\n"
-    "\\usepackage{fancyhdr}\n"
-    "\\usepackage[english]{babel}\n"
-    "\\usepackage{tabularx}\n"
-    "\\pagestyle{fancy}\n"
-    "\\fancyhf{}\n"
-    "\\fancyfoot{}\n"
-    "\\renewcommand{\\headrulewidth}{0pt}\n"
-    "\\renewcommand{\\footrulewidth}{0pt}\n"
-    "\\addtolength{\\oddsidemargin}{-0.5in}\n"
-    "\\addtolength{\\evensidemargin}{-0.5in}\n"
-    "\\addtolength{\\textwidth}{1in}\n"
-    "\\addtolength{\\topmargin}{-.5in}\n"
-    "\\addtolength{\\textheight}{1.0in}\n"
-    "\\urlstyle{same}\n"
-    "\\raggedbottom\n"
-    "\\raggedright\n"
-    "\\setlength{\\tabcolsep}{0in}\n"
-    "\\titleformat{\\section}{\n"
-    "  \\vspace{-4pt}\\scshape\\raggedright\\large\n"
-    "}{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]\n"
-    "\\newcommand{\\resumeItem}[1]{\n"
-    "  \\item\\small{\n"
-    "    {#1 \\vspace{-2pt}}\n"
-    "  }\n"
-    "}\n"
-    "\\newcommand{\\resumeSubheading}[4]{\n"
-    "  \\vspace{-2pt}\\item\n"
-    "    \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}\n"
-    "      \\textbf{#1} & #2 \\\\\n"
-    "      \\textit{\\small#3} & \\textit{\\small #4} \\\\\n"
-    "    \\end{tabular*}\\vspace{-7pt}\n"
-    "}\n"
-    "\\newcommand{\\resumeProjectHeading}[2]{\n"
-    "    \\item\n"
-    "    \\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}\n"
-    "      \\small#1 & #2 \\\\\n"
-    "    \\end{tabular*}\\vspace{-7pt}\n"
-    "}\n"
-    "\\newcommand{\\resumeSubItem}[1]{\\resumeItem{#1}\\vspace{-4pt}}\n"
-    "\\renewcommand\\labelitemii{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}\n"
-    "\\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}\n"
-    "\\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}\n"
-    "\\newcommand{\\resumeItemListStart}{\\begin{itemize}}\n"
-    "\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}\n"
-    "\\begin{document}\n\n"
+    + LATEX_PREAMBLE_ESCAPED + "\n"
     "--- INSTRUCTIONS FOR GENERATING CONTENT ---\n"
-    "1. Header: Use the personalInfo object to construct the center block. Begin with Name (Huge/scshape), then a new line for Phone, Email, and Address (if provided, use `$|$` to separate). Then loop through `personalInfo.links`. For each link, append `$|$ \\href{URL}{\\underline{LABEL}}` to the contact line.\n"
-    "2. Education: Use \\section{Education} followed by \\resumeSubHeadingListStart. For each item in the education array, use \\resumeSubheading{University}{Dates}{Degree}{Location}.\n"
-    "3. Experience: Use \\section{Experience}. For each job, use \\resumeSubheading{Role}{Dates}{Company}{Location}. Then use \\resumeItemListStart and \\resumeItem{} for EACH bullet point string in the array. \n"
-    "4. Custom Sections: For each object in the 'customSections' array, generate \\section{TITLE_HERE}. Then use \\resumeSubHeadingListStart. For each item inside the section, use \\resumeProjectHeading{\\textbf{NAME_HERE}}{DATE_HERE}. If there are bullet points, use \\resumeItemListStart and \\resumeItem{} for EACH bullet point string.\n"
-    "End the document with \\end{document}.\n\n"
+    "1. Header: Use the personalInfo object to construct the center block. Begin with a \\begin{{center}} block. Name (Huge/scshape), then a new line for Address. Then a new line for Phone, Email, and links separated by ` ~ `. For each link, if an icon URL is available, format it like \\href{{URL}}{{\\raisebox{{-0.2\\height}}{{\\includegraphics[height=0.3cm, width=0.3cm]{{ICON_FILENAME}}}}\\ \\underline{{LABEL}}}}. If no icon, use \\underline{{LABEL}}.\n"
+    "2. Education: Use \\section{{EDUCATION}} followed by \\resumeSubHeadingListStart. For each item in the education array, use \\resumeSubheading{{University}}{{Dates}}{{Degree}}{{Location}}.\n"
+    "3. Experience: Use \\section{{EXPERIENCE}}. For each job, use \\resumeSubheading{{Role}}{{Dates}}{{Company}}{{Location}}. Then use \\resumeItemListStart and \\resumeItem{{\\normalsize{{bullet point text}}}} for EACH bullet point string in the array. DO NOT add `\\\\` at the end of `\\resumeItem`. If a bullet point is empty, DO NOT generate a `\\resumeItem` for it.\n"
+    "4. Custom Sections: For each object in the 'customSections' array, generate \\section{{TITLE_HERE}}. Then use \\resumeSubHeadingListStart. For each item inside the section, use \\resumeProjectHeading{{\\href{{#}}{{\\textbf{{\\large{{\\underline{{NAME_HERE}}}}}}}} $|$ \\large{{\\underline{{LOCATION/TECH}}}}}}{{DATE_HERE}}. If there are bullet points, use \\resumeItemListStart and \\resumeItem{{\\normalsize{{bullet point text}}}} for EACH bullet point string. DO NOT add `\\\\` at the end of `\\resumeItem`.\n"
+    "5. Technical Skills: Use \\section{{TECHNICAL SKILLS}} and \\begin{{itemize}}[leftmargin=0.15in, label={{}}] followed by \\small{{\\item{{ \\textbf{{\\normalsize{{Category:}}}}{{  \\normalsize{{Skills}} }} }} }}.\n"
+    "End the document with \\end{{document}}.\n\n"
     "USER DATA (JSON):\n{form_data}\n\n"
     "GENERATED LATEX:"
 )

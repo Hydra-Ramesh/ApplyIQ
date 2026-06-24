@@ -15,16 +15,16 @@ export const cacheRoute = (ttlSeconds: number = 3600) => {
 
     try {
       const key = `cache:${req.originalUrl || req.url}`;
-      const cachedResponse = await redisCache.get(key);
+      const cachedResponse = await redisCache.get<string>(key);
 
       if (cachedResponse) {
-        return res.status(200).json(JSON.parse(cachedResponse));
+        return res.status(200).json(typeof cachedResponse === 'string' ? JSON.parse(cachedResponse) : cachedResponse);
       }
 
       // If cache miss, intercept the res.json/res.send to save the payload
       const originalJson = res.json.bind(res);
       res.json = ((body: any) => {
-        redisCache.set(key, JSON.stringify(body), { EX: ttlSeconds }).catch(console.error);
+        redisCache.set(key, JSON.stringify(body), ttlSeconds).catch(console.error);
         return originalJson(body);
       }) as any;
 
@@ -41,10 +41,7 @@ export const cacheRoute = (ttlSeconds: number = 3600) => {
  */
 export const invalidateCachePattern = async (pattern: string) => {
   try {
-    const keys = await redisCache.keys(`cache:${pattern}*`);
-    if (keys.length > 0) {
-      await redisCache.del(keys);
-    }
+    await redisCache.delete(`cache:${pattern}`);
   } catch (error) {
     console.error('Failed to invalidate cache:', error);
   }

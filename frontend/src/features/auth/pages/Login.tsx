@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import { useAuthStore } from "@/shared/hooks/useAuthStore";
 
@@ -7,19 +7,50 @@ export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const login = useAuthStore(state => state.login);
   const navigate = useNavigate();
+  const location = useLocation();
+  const successMessage = location.state?.message;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
 
-    // Mock API call
-    setTimeout(() => {
-      login({ id: "123", email, subscriptionTier: "free", isAdmin: true });
-      setIsLoading(false);
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      // Decode JWT payload to get user info
+      const payload = JSON.parse(atob(data.token.split(".")[1]));
+      
+      login({
+        id: payload.userId,
+        email: payload.email,
+        name: payload.name || "",
+        avatarUrl: payload.avatarUrl || "",
+        subscriptionTier: "free",
+        isAdmin: payload.isAdmin || false,
+      });
+
+      // Store token for future API calls
+      localStorage.setItem("token", data.token);
       navigate("/dashboard");
-    }, 1000);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -42,6 +73,16 @@ export function Login() {
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {successMessage && (
+            <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-sm text-center">
+              {successMessage}
+            </div>
+          )}
+          {error && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm text-center">
+              {error}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-white/80 mb-2">Email Address</label>
             <div className="relative">

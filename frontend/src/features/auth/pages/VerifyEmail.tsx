@@ -1,17 +1,31 @@
-import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { ArrowRight } from "lucide-react";
+import { useAuthStore } from "@/shared/hooks/useAuthStore";
+
+const RESEND_COOLDOWN = 60; // seconds
 
 export function VerifyEmail() {
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const location = useLocation();
+  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
 
-  const email = location.state?.email || "your email";
+  const email = searchParams.get("email") || "";
+
+  // Countdown timer for resend cooldown
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,18 +34,60 @@ export function VerifyEmail() {
     setIsLoading(true);
     setError("");
 
-    // Mock API
-    setTimeout(() => {
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Verification failed");
+
+      // Auto-login: store token and set user in auth store
+      localStorage.setItem("token", data.token);
+      const payload = JSON.parse(atob(data.token.split(".")[1]));
+      login({
+        id: payload.userId,
+        email: payload.email,
+        name: payload.name || "",
+        avatarUrl: payload.avatarUrl || "",
+        subscriptionTier: "free",
+        isAdmin: payload.isAdmin || false,
+      });
+
       setSuccess("Email verified successfully! Redirecting...");
+      setTimeout(() => navigate("/dashboard"), 1500);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
+      setOtp(""); // Clear OTP on error
+    } finally {
       setIsLoading(false);
-      setTimeout(() => navigate("/dashboard"), 2000);
-    }, 1500);
+    }
   };
 
-  const handleResend = async () => {
+  const handleResend = useCallback(async () => {
+    if (cooldown > 0) return;
     setError("");
-    setSuccess("A new OTP has been sent to your email.");
-  };
+    setSuccess("");
+
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/resend-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to resend OTP");
+
+      setOtp(""); // Clear old OTP
+      setSuccess("A new OTP has been sent to your email.");
+      setCooldown(RESEND_COOLDOWN); // Restart cooldown
+    } catch (err: any) {
+      setError(err.message || "Failed to resend code");
+    }
+  }, [cooldown, email]);
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -83,9 +139,15 @@ export function VerifyEmail() {
 
         <p className="mt-8 text-center text-sm text-white/60">
           Didn't receive the code?{" "}
-          <button onClick={handleResend} className="text-white font-medium hover:underline">
-            Resend Code
-          </button>
+          {cooldown > 0 ? (
+            <span className="text-white/40 font-medium">
+              Resend in {cooldown}s
+            </span>
+          ) : (
+            <button onClick={handleResend} className="text-white font-medium hover:underline">
+              Resend Code
+            </button>
+          )}
         </p>
       </div>
     </div>

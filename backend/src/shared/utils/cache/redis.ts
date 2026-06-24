@@ -20,7 +20,7 @@ class RedisCache {
 
   async set(key: string, value: any, ttlSeconds: number): Promise<void> {
     if (this.client) {
-      await this.client.set(key, JSON.stringify(value), { ex: ttlSeconds });
+      await this.client.set(key, value, { ex: ttlSeconds });
     } else {
       this.memoryCache.set(key, { 
         value, 
@@ -32,7 +32,7 @@ class RedisCache {
   async get<T>(key: string): Promise<T | null> {
     if (this.client) {
       const data = await this.client.get(key);
-      return typeof data === 'string' ? JSON.parse(data) : data as T;
+      return data as T;
     } else {
       const item = this.memoryCache.get(key);
       if (!item) return null;

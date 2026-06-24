@@ -35,3 +35,41 @@ export const useResumes = (page: number, limit: number = 10) => {
     // keepPreviousData is replaced by placeholderData: keepPreviousData in v5, but we can just let it suspend or show loading
   });
 };
+
+export const saveResume = async (data: { title: string; targetRole: string; texCode: string; userId?: string }) => {
+  const response = await fetch(`${env.VITE_API_URL}/resumes`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {})
+    },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to save resume');
+  }
+  return response.json();
+};
+
+export const getResume = async (id: string) => {
+  const response = await fetch(`${env.VITE_API_URL}/resumes/${id}`, {
+    headers: {
+      ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {})
+    }
+  });
+  if (!response.ok) throw new Error('Failed to fetch resume');
+  return response.json();
+};
+
+export const updateResume = async (id: string, data: Partial<{ title: string; targetRole: string; texCode: string; userId?: string; chatHistory?: {role: string, content: string}[] }>) => {
+  const response = await fetch(`${env.VITE_API_URL}/resumes/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {})
+    },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Failed to update resume');
+  return response.json();
+};

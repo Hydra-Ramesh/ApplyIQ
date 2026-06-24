@@ -5,8 +5,10 @@ import { cacheRoute } from '../../shared/middlewares/cache.middleware';
 const router = Router();
 
 // Cache the first page for 5 minutes. Subsequent pages hit DB.
-// In a full implementation, we'd invalidate cache on POST.
-router.get('/', cacheRoute(300), resumeController.getResumes);
+// Avoid caching user-specific data to prevent stale states and cross-user leaks
+router.get('/', resumeController.getResumes);
 router.post('/', resumeController.createResume);
+router.get('/:id', resumeController.getResumeById);
+router.put('/:id', resumeController.updateResume);
 
 export default router;

@@ -1,8 +1,10 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, FileText, Settings, User } from "lucide-react";
+import { useAuthStore } from "@/shared/hooks/useAuthStore";
 
 export function BaseLayout() {
   const location = useLocation();
+  const { user } = useAuthStore();
 
   const getLinkClasses = (path: string) => {
     const isActive = location.pathname === path;
@@ -32,10 +34,6 @@ export function BaseLayout() {
             <LayoutDashboard className="h-5 w-5" />
             Dashboard
           </Link>
-          <Link to="/resumes" className={getLinkClasses("/resumes")}>
-            <FileText className="h-5 w-5" />
-            My Resumes
-          </Link>
         </nav>
 
         <div className="border-t border-white/10 pt-6 mt-4">
@@ -54,14 +52,17 @@ export function BaseLayout() {
         <header className="h-20 border-b border-white/10 bg-black/40 backdrop-blur-md flex items-center justify-between px-8 z-10">
           <div className="font-semibold text-xl tracking-tight text-white/90">
             {location.pathname === '/dashboard' ? 'Overview' : 
-             location.pathname === '/resumes' ? 'My Resumes' : 
              location.pathname === '/settings' ? 'Settings' : 'Dashboard'}
           </div>
           <div className="flex items-center gap-4">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm font-medium hover:bg-white/10 transition-colors text-white/90">
-              <User className="h-4 w-4" />
-              Ramesh
-            </button>
+            <Link to="/dashboard/profile" className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm font-medium hover:bg-white/10 transition-colors text-white/90">
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="Avatar" className="w-5 h-5 rounded-full object-cover" />
+              ) : (
+                <User className="h-4 w-4" />
+              )}
+              {user?.name || user?.email?.split('@')[0] || "User"}
+            </Link>
           </div>
         </header>
         

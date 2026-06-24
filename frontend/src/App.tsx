@@ -7,6 +7,7 @@ import { Home } from "./shared/pages/Home";
 const Onboarding = lazy(() => import("./features/onboarding/pages/Onboarding").then(m => ({ default: m.Onboarding })));
 const EditorLayout = lazy(() => import("./features/editor/pages/EditorLayout").then(m => ({ default: m.EditorLayout })));
 const Dashboard = lazy(() => import("./features/dashboard/pages/Dashboard").then(m => ({ default: m.Dashboard })));
+const Profile = lazy(() => import("./features/profile/pages/Profile").then(m => ({ default: m.Profile })));
 const NewResumeWizard = lazy(() => import("./features/dashboard/pages/NewResumeWizard").then(m => ({ default: m.NewResumeWizard })));
 const TemplateGallery = lazy(() => import("./features/dashboard/pages/TemplateGallery").then(m => ({ default: m.TemplateGallery })));
 const AdminDashboard = lazy(() => import("./features/admin/pages/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
@@ -36,6 +37,7 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/dashboard" element={<BaseLayout />}>
             <Route index element={<Dashboard />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="new" element={<NewResumeWizard />} />
             <Route path="templates" element={<TemplateGallery />} />
           </Route>

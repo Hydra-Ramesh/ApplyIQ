@@ -1,7 +1,10 @@
 import { Router } from 'express';
-import Profile from '../models/Profile';
-import { authenticate, AuthRequest } from '../middlewares/auth';
-import { fetchLeetcodeStats, fetchGithubStats } from '../services/codingProfiles';
+import Profile from './profile.model';
+import { authenticate, AuthRequest } from '../../shared/middlewares/auth.middleware';
+
+// Stub for coding profile stats until the service is implemented
+const fetchLeetcodeStats = async (_username: string) => ({ rating: 0 });
+const fetchGithubStats = async (_username: string) => ({ repos: 0 });
 
 const router = Router();
 

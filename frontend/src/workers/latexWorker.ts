@@ -2,21 +2,26 @@
 // In a real implementation, you would load tectonic or swiftlatex WASM modules here.
 
 self.onmessage = async (e) => {
-  const { texCode } = e.data;
+  const { texCode, images } = e.data;
   
-  // Simulate compilation delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-
-  console.log("Worker received code length:", texCode.length);
-
   try {
-    // Return a dummy PDF blob url or base64. 
-    // Usually WASM engines return a Uint8Array representing the PDF.
+    const response = await fetch('http://localhost:8000/api/v1/resume/compile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ tex_code: texCode, images })
+    });
     
-    // For now, we just pretend compilation succeeded.
-    // We send a success message. We will use a real dummy PDF string in the UI for now.
-    self.postMessage({ success: true, pdfData: null });
+    if (!response.ok) {
+      throw new Error('Compilation failed. Please check LaTeX syntax.');
+    }
+    
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    
+    self.postMessage({ success: true, pdfData: url });
   } catch (error) {
-    self.postMessage({ success: false, error: 'Compilation failed' });
+    self.postMessage({ success: false, error: error instanceof Error ? error.message : 'Compilation failed' });
   }
 };

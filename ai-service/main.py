@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+load_dotenv() # Load variables from .env BEFORE creating the app
+
 from modules.resume_builder.router import router as builder_router
 from modules.quality_checker.router import router as quality_router
 

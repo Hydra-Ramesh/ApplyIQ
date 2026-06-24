@@ -6,6 +6,7 @@ export interface IResume extends Document {
   texCode: string;
   targetRole: string;
   atsScore: number;
+  chatHistory: { role: string; content: string }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,6 +18,13 @@ const ResumeSchema = new Schema(
     texCode: { type: String, required: true },
     targetRole: { type: String, default: 'General' },
     atsScore: { type: Number, default: 0 },
+    chatHistory: { 
+      type: [{ 
+        role: { type: String, enum: ['user', 'assistant'] }, 
+        content: String 
+      }], 
+      default: [] 
+    },
   },
   { timestamps: true }
 );

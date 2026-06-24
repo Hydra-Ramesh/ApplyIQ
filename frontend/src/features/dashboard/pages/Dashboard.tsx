@@ -1,11 +1,57 @@
 import { useState } from 'react';
 import { useResumes } from '../api/resume.api';
-import { FileText, Plus, ChevronLeft, ChevronRight, Activity } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { FileText, Plus, ChevronLeft, ChevronRight, Activity, LogOut, Pencil, Check, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { updateResume } from '../api/resume.api';
+import { toast } from 'sonner';
+import { useAuthStore } from '@/shared/hooks/useAuthStore';
 
 export function Dashboard() {
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError } = useResumes(page, 9); // Load 9 per page for a 3x3 grid
+  const { data, isLoading, isError } = useResumes(page, 9);
+  const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+
+  const handleLogout = async () => {
+    try {
+      await fetch('http://localhost:5000/api/auth/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+    } catch (_) { /* proceed with local logout even if API fails */ }
+    localStorage.removeItem('token');
+    logout();
+    logout();
+    navigate('/');
+  };
+
+  const handleRenameClick = (e: React.MouseEvent, resume: any) => {
+    e.stopPropagation();
+    setEditingId(resume._id);
+    setEditTitle(resume.title);
+  };
+
+  const handleRenameSubmit = async (e: React.FormEvent, resumeId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await updateResume(resumeId, { title: editTitle });
+      toast.success('Resume renamed!');
+      setEditingId(null);
+      queryClient.invalidateQueries({ queryKey: ['resumes'] });
+    } catch (err) {
+      toast.error('Failed to rename resume');
+    }
+  };
+
+  const handleCancelRename = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(null);
+  };
 
   return (
     <div className="min-h-screen bg-black text-white p-8 lg:p-12">
@@ -17,7 +63,15 @@ export function Dashboard() {
             <h1 className="text-4xl font-bold mb-2">My Resumes</h1>
             <p className="text-slate-400">Manage and optimize your tailored resumes.</p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-3 items-center">
+            {user?.isAdmin && (
+              <Link 
+                to="/admin" 
+                className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl font-medium transition-colors text-sm"
+              >
+                Admin
+              </Link>
+            )}
             <Link 
               to="/dashboard/templates" 
               className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white px-6 py-3 rounded-xl font-medium transition-colors"
@@ -30,6 +84,12 @@ export function Dashboard() {
             >
               <Plus className="w-5 h-5" /> AI Generator
             </Link>
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-2 bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 text-white/60 hover:text-red-400 px-4 py-3 rounded-xl font-medium transition-all text-sm"
+            >
+              <LogOut className="w-4 h-4" /> Logout
+            </button>
           </div>
         </header>
 
@@ -53,7 +113,11 @@ export function Dashboard() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
               {data.data.map((resume) => (
-                <div key={resume._id} className="group relative bg-white/5 border border-white/10 p-6 rounded-2xl hover:bg-white/10 transition-all cursor-pointer overflow-hidden backdrop-blur-xl">
+                <div 
+                  key={resume._id} 
+                  onClick={() => navigate(`/editor?id=${resume._id}`)}
+                  className="group relative bg-white/5 border border-white/10 p-6 rounded-2xl hover:bg-white/10 transition-all cursor-pointer overflow-hidden backdrop-blur-xl"
+                >
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                   
                   <div className="flex justify-between items-start mb-6">
@@ -69,7 +133,39 @@ export function Dashboard() {
                     </div>
                   </div>
 
-                  <h3 className="text-xl font-semibold mb-1 truncate relative z-10">{resume.title}</h3>
+                  {editingId === resume._id ? (
+                    <form 
+                      onSubmit={(e) => handleRenameSubmit(e, resume._id)} 
+                      onClick={(e) => e.stopPropagation()}
+                      className="mb-1 flex items-center gap-2 relative z-10"
+                    >
+                      <input 
+                        type="text" 
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        autoFocus
+                        className="bg-black/50 border border-white/20 rounded px-2 py-1 text-white text-sm w-full focus:outline-none focus:border-blue-500"
+                      />
+                      <button type="submit" className="p-1 hover:bg-white/10 rounded text-green-400">
+                        <Check className="w-4 h-4" />
+                      </button>
+                      <button type="button" onClick={handleCancelRename} className="p-1 hover:bg-white/10 rounded text-red-400">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </form>
+                  ) : (
+                    <div className="flex items-center justify-between mb-1 relative z-10">
+                      <h3 className="text-xl font-semibold truncate flex-1">{resume.title}</h3>
+                      <button 
+                        onClick={(e) => handleRenameClick(e, resume)}
+                        className="p-2 opacity-0 group-hover:opacity-100 hover:bg-white/10 rounded-lg transition-all text-slate-400 hover:text-white"
+                        title="Rename"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  
                   <p className="text-slate-400 text-sm relative z-10">{resume.targetRole}</p>
                   
                   <div className="mt-6 pt-6 border-t border-white/10 text-xs text-slate-500 flex justify-between items-center relative z-10">
