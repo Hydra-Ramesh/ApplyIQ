@@ -27,7 +27,7 @@ interface EditorState {
   toggleAutoCompile: () => void;
 }
 
-export const DEFAULT_GREETING = { role: 'assistant' as const, content: "Hi! I'm your AI Copilot. How would you like to customize this template? (e.g. 'Make the font smaller', 'Add a Skills section')" };
+export const DEFAULT_GREETING = { role: 'assistant' as const, content: "Hi there! 👋 I'm your resume assistant. Let me know how you'd like to tweak this template (e.g., 'Make the title bigger' or 'Add a certification section')." };
 
 export const useEditorStore = create<EditorState>()(
   persist(

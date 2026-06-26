@@ -1,18 +1,37 @@
 from .llm import get_llm, execute_with_rotation
 from .prompts import REWRITE_BULLET_PROMPT, OPTIMIZE_ATS_PROMPT, TAILOR_RESUME_PROMPT, AUTOCOMPLETE_PROMPT, ROAST_PROMPT, COLD_EMAIL_PROMPT, GENERATE_RESUME_PROMPT, COPILOT_PROMPT
 
-def copilot_edit(tex_code: str, instruction: str) -> str:
+def copilot_edit(tex_code: str, instruction: str, chat_history: list = None) -> dict:
     def _run():
+        history_str = "No previous history."
+        if chat_history:
+            # Format the last 5 messages for context, ignoring the default greeting if it's the only one
+            recent_history = chat_history[-6:] 
+            formatted_msgs = []
+            for msg in recent_history:
+                role = "User" if msg.get("role") == "user" else "Assistant"
+                formatted_msgs.append(f"{role}: {msg.get('content')}")
+            if formatted_msgs:
+                history_str = "\n\n".join(formatted_msgs)
+
         llm = get_llm()
         chain = COPILOT_PROMPT | llm
-        response = chain.invoke({"tex_code": tex_code, "instruction": instruction})
+        response = chain.invoke({"tex_code": tex_code, "instruction": instruction, "history": history_str})
         
         result = response.content.strip()
-        if result.startswith("```latex"):
-            result = result[8:]
-        if result.endswith("```"):
-            result = result[:-3]
-        return result.strip()
+        import re
+        message_match = re.search(r'<message>(.*?)</message>', result, re.DOTALL)
+        tex_match = re.search(r'<tex_code>(.*?)</tex_code>', result, re.DOTALL)
+        
+        message = message_match.group(1).strip() if message_match else "I updated your resume!"
+        new_tex_code = tex_match.group(1).strip() if tex_match else result
+        
+        if new_tex_code.startswith("```latex"):
+            new_tex_code = new_tex_code[8:]
+        if new_tex_code.endswith("```"):
+            new_tex_code = new_tex_code[:-3]
+            
+        return {"tex_code": new_tex_code.strip(), "message": message}
         
     return execute_with_rotation(_run)
 def rewrite_bullet(raw_text: str) -> str:

@@ -4,6 +4,8 @@ import { LatexEditor } from "../../../components/editor/LatexEditor";
 import { PdfPreview } from "../../../components/editor/PdfPreview";
 import { EditorToolbar } from "../components/EditorToolbar";
 import { CopilotSidebar } from "../components/CopilotSidebar";
+import { AtsModal } from "../components/AtsModal";
+import { LiveInsightsWidget } from "../components/LiveInsightsWidget";
 import { useEditorStore } from "../../../shared/hooks/useEditorStore";
 import { useAuthStore } from "../../../shared/hooks/useAuthStore";
 import { saveResume, updateResume, getResume } from "../../dashboard/api/resume.api";
@@ -23,6 +25,18 @@ export function EditorLayout() {
   const [isSaving, setIsSaving] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [showCopilot, setShowCopilot] = useState(true);
+  const [isAtsModalOpen, setIsAtsModalOpen] = useState(false);
+  const [compilationError, setCompilationError] = useState<string | null>(null);
+  
+  // Live Insights State
+  const [liveJobDescription, setLiveJobDescription] = useState("");
+  const [liveRoastContent, setLiveRoastContent] = useState<string | null>(null);
+  const [liveAtsContent, setLiveAtsContent] = useState<string | null>(null);
+  const [liveAtsScore, setLiveAtsScore] = useState<number | null>(null);
+  const [isLiveAnalyzing, setIsLiveAnalyzing] = useState(false);
+  const [isLiveAnalyticsOpen, setIsLiveAnalyticsOpen] = useState(false);
+  const wsRef = useRef<WebSocket | null>(null);
+
   const workerRef = useRef<Worker | null>(null);
   const editorRef = useRef<any>(null);
 
@@ -34,17 +48,87 @@ export function EditorLayout() {
     workerRef.current.onmessage = (e) => {
       if (e.data.success) {
         console.log("Compilation Successful!");
+        setCompilationError(null);
         if (e.data.pdfData) {
           setPdfUrl(e.data.pdfData);
         }
+        
+        // Trigger live analysis on successful compile
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          setIsLiveAnalyzing(true);
+          setLiveRoastContent(null);
+          setLiveAtsContent(null);
+          setLiveAtsScore(null);
+          
+          wsRef.current.send(JSON.stringify({
+             tex_code: useEditorStore.getState().code,
+             job_description: liveJobDescription
+          }));
+        }
+        
       } else {
         console.error("Compilation Error:", e.data.error);
+        setCompilationError(e.data.error);
+        toast.error(`Compilation Error: ${e.data.error}`);
       }
       setIsCompiling(false);
     };
 
     return () => workerRef.current?.terminate();
-  }, []);
+  }, [liveJobDescription]);
+
+  // WebSocket Setup
+  useEffect(() => {
+    let reconnectTimeout: ReturnType<typeof setTimeout>;
+    
+    const connectWs = () => {
+      const wsUrl = `${import.meta.env.VITE_AI_URL.replace('http', 'ws')}/api/v1/resume/ws/live-analysis`;
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'roast_start') setLiveRoastContent("");
+          else if (data.type === 'roast_chunk') setLiveRoastContent(prev => (prev || "") + data.content);
+          else if (data.type === 'ats_start') setLiveAtsContent("");
+          else if (data.type === 'ats_chunk') setLiveAtsContent(prev => (prev || "") + data.content);
+          else if (data.type === 'ats_end') {
+            setLiveAtsScore(data.score);
+            if (currentResumeId && data.score > 0) {
+              updateResume(currentResumeId, { atsScore: data.score });
+            }
+          }
+          else if (data.type === 'roast_end') {
+            setTimeout(() => setIsLiveAnalyzing(false), 500);
+          }
+        } catch (e) {
+          console.error("WS parse error", e);
+        }
+      };
+
+      ws.onclose = () => {
+        console.log("WS closed, reconnecting in 2s...");
+        reconnectTimeout = setTimeout(connectWs, 2000);
+      };
+      
+      ws.onerror = (e) => {
+        console.error("WS Error", e);
+      };
+    };
+
+    connectWs();
+
+    return () => {
+      clearTimeout(reconnectTimeout);
+      if (wsRef.current) {
+        wsRef.current.onclose = null;
+        if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
+          wsRef.current.close();
+        }
+      }
+    };
+  }, [currentResumeId]);
 
   useEffect(() => {
     if (resumeIdParam && resumeIdParam !== currentResumeId) {
@@ -143,18 +227,56 @@ export function EditorLayout() {
     }
   };
 
+  const handleGoHome = async () => {
+    // Only auto-save if we have something to save
+    if (code) {
+      setIsSaving(true);
+      try {
+        if (currentResumeId) {
+          await updateResume(currentResumeId, {
+            title: title || "My Resume",
+            targetRole: "Software Engineer",
+            texCode: code,
+          });
+        } else {
+          await saveResume({
+            title: title,
+            targetRole: "Software Engineer",
+            texCode: code,
+            userId: user?.id
+          });
+        }
+      } catch (e) {
+        console.error("Autosave failed on go home", e);
+      } finally {
+        setIsSaving(false);
+      }
+    }
+    navigate('/dashboard');
+  };
+
   return (
     <div className="h-screen w-full flex flex-col bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950">
+      <AtsModal 
+        isOpen={isAtsModalOpen} 
+        onClose={() => setIsAtsModalOpen(false)} 
+        resumeId={currentResumeId}
+      />
+
       <EditorToolbar 
         isCompiling={isCompiling} 
         onCompile={handleCompile} 
         onDownload={handleDownload} 
         isSaving={isSaving}
         onSave={handleSave}
+        onHome={handleGoHome}
         showCopilot={showCopilot}
         onToggleCopilot={() => setShowCopilot(!showCopilot)}
         onUndo={handleUndo}
         onRedo={handleRedo}
+        onOpenAts={() => setIsAtsModalOpen(true)}
+        isLiveAnalyticsOpen={isLiveAnalyticsOpen}
+        onToggleLiveAnalytics={() => setIsLiveAnalyticsOpen(!isLiveAnalyticsOpen)}
       />
 
       <div className="flex-1 overflow-hidden">
@@ -168,7 +290,7 @@ export function EditorLayout() {
               className="z-20 border-white/10"
             >
               <div className="w-full h-full border-r border-white/10 overflow-hidden">
-                <CopilotSidebar />
+                <CopilotSidebar compilationError={compilationError} />
               </div>
             </ResizablePanel>
           )}
@@ -181,7 +303,17 @@ export function EditorLayout() {
           
           <ResizableHandle />
           
-          <ResizablePanel id="preview" defaultSize={40} minSize={10}>
+          <ResizablePanel id="preview" defaultSize={40} minSize={10} className="relative">
+            <LiveInsightsWidget 
+              roastContent={liveRoastContent}
+              atsScore={liveAtsScore}
+              atsContent={liveAtsContent}
+              jobDescription={liveJobDescription}
+              setJobDescription={setLiveJobDescription}
+              isAnalyzing={isLiveAnalyzing}
+              isOpen={isLiveAnalyticsOpen}
+              onClose={() => setIsLiveAnalyticsOpen(false)}
+            />
             <PdfPreview isCompiling={isCompiling} pdfUrl={pdfUrl} />
           </ResizablePanel>
         </ResizablePanelGroup>

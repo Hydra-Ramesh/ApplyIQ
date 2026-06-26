@@ -92,7 +92,7 @@ export function AdminDashboard() {
         <div className="flex space-x-1 bg-white/5 p-1 rounded-xl w-fit mb-8 border border-white/10">
           <button
             onClick={() => setActiveTab('users')}
-            className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all flex items-center gap-2 \${
+            className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
               activeTab === 'users' ? 'bg-white/10 text-white shadow-sm' : 'text-white/60 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -101,7 +101,7 @@ export function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('templates')}
-            className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all flex items-center gap-2 \${
+            className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
               activeTab === 'templates' ? 'bg-white/10 text-white shadow-sm' : 'text-white/60 hover:text-white hover:bg-white/5'
             }`}
           >

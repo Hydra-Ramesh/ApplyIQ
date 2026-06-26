@@ -1,4 +1,4 @@
-import { Play, Download, Save, Sparkles, Flame, Mail, Activity, Image as ImageIcon, Undo, Redo } from "lucide-react";
+import { Play, Download, Save, Sparkles, Flame, Mail, Activity, Image as ImageIcon, Undo, Redo, ArrowLeft, Target } from "lucide-react";
 import { useState } from "react";
 import { JobTailorModal } from "./JobTailorModal";
 import { RoastModal } from "./RoastModal";
@@ -7,7 +7,6 @@ import { UpgradeModal } from "./UpgradeModal";
 import { IconManagerModal } from "./IconManagerModal";
 import { useAuthStore } from "../../../shared/hooks/useAuthStore";
 import { useEditorStore } from "../../../shared/hooks/useEditorStore";
-import { Bot } from "lucide-react";
 
 interface EditorToolbarProps {
   isCompiling: boolean;
@@ -19,9 +18,13 @@ interface EditorToolbarProps {
   onToggleCopilot?: () => void;
   onUndo?: () => void;
   onRedo?: () => void;
+  onHome?: () => void;
+  onOpenAts?: () => void;
+  isLiveAnalyticsOpen?: boolean;
+  onToggleLiveAnalytics?: () => void;
 }
 
-export function EditorToolbar({ isCompiling, onCompile, onDownload, isSaving, onSave, showCopilot, onToggleCopilot, onUndo, onRedo }: EditorToolbarProps) {
+export function EditorToolbar({ isCompiling, onCompile, onDownload, isSaving, onSave, showCopilot, onToggleCopilot, onUndo, onRedo, onHome, onOpenAts, isLiveAnalyticsOpen, onToggleLiveAnalytics }: EditorToolbarProps) {
   const [isTailorModalOpen, setIsTailorModalOpen] = useState(false);
   const [isRoastModalOpen, setIsRoastModalOpen] = useState(false);
   const [isColdEmailModalOpen, setIsColdEmailModalOpen] = useState(false);
@@ -44,6 +47,13 @@ export function EditorToolbar({ isCompiling, onCompile, onDownload, isSaving, on
     <>
       <header className="h-14 border-b border-white/10 bg-slate-900/40 backdrop-blur-xl flex items-center justify-between px-6">
         <div className="flex items-center gap-4">
+          <button 
+            onClick={onHome}
+            className="flex items-center justify-center p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md transition-colors mr-1"
+            title="Back to Dashboard"
+          >
+            <ArrowLeft className="w-3 h-3" />
+          </button>
           <div className="font-semibold text-lg text-white pr-4 border-r border-slate-700">ApplyIQ <span className="text-slate-400">Editor</span></div>
           <input 
             type="text" 
@@ -53,83 +63,101 @@ export function EditorToolbar({ isCompiling, onCompile, onDownload, isSaving, on
             className="bg-transparent text-white font-medium focus:outline-none focus:ring-1 focus:ring-blue-500/50 rounded px-2 py-1 w-64 hover:bg-white/5 transition-colors"
           />
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-1 flex-wrap items-center justify-end">
           <button 
             onClick={onUndo}
-            className="flex items-center justify-center p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md transition-colors"
+            className="flex items-center justify-center p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md transition-colors"
             title="Undo"
           >
-            <Undo className="w-4 h-4" />
+            <Undo className="w-3 h-3" />
           </button>
           <button 
             onClick={onRedo}
-            className="flex items-center justify-center p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md transition-colors mr-2"
+            className="flex items-center justify-center p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md transition-colors mr-2"
             title="Redo"
           >
-            <Redo className="w-4 h-4" />
+            <Redo className="w-3 h-3" />
           </button>
           
           <button 
             onClick={onSave}
             disabled={isSaving}
-            className="flex items-center gap-2 px-2.5 py-1 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition-colors disabled:opacity-50"
+            className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition-colors disabled:opacity-50"
           >
-            <Save className="w-3.5 h-3.5" /> {isSaving ? 'Saving...' : 'Save'}
+            <Save className="w-3 h-3" /> {isSaving ? 'Saving...' : 'Save'}
           </button>
           <button 
             onClick={toggleHeatmap}
-            className={`flex items-center gap-2 px-2.5 py-1 text-xs font-bold rounded-md transition-all border ${
+            className={`flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded-md transition-all border ${
               isHeatmapActive 
                 ? 'text-teal-400 bg-teal-500/20 border-teal-500/30' 
                 : 'text-slate-400 hover:text-slate-300 bg-slate-800 border-slate-700'
             }`}
           >
-            <Activity className="w-3.5 h-3.5" /> {isHeatmapActive ? 'Heatmap: ON' : 'Heatmap: OFF'}
+            <Activity className="w-3 h-3" /> {isHeatmapActive ? 'Heatmap: ON' : 'Heatmap: OFF'}
           </button>
           
           <button 
             onClick={() => setIsRoastModalOpen(true)}
-            className="flex items-center gap-2 px-2.5 py-1 text-xs font-bold text-orange-500 hover:text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 rounded-md transition-all border border-orange-500/20"
+            className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold text-orange-500 hover:text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 rounded-md transition-all border border-orange-500/20"
           >
-            <Flame className="w-3.5 h-3.5" /> Roast Me
+            <Flame className="w-3 h-3" /> Roast Me
+          </button>
+
+          <button 
+            onClick={onOpenAts}
+            className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-md transition-all border border-blue-500/20"
+          >
+            <Target className="w-3 h-3" /> ATS Optimizer
+          </button>
+          
+          <button 
+            onClick={onToggleLiveAnalytics}
+            className={`flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded-md transition-all border ${
+              isLiveAnalyticsOpen 
+                ? 'text-blue-400 bg-blue-500/20 border-blue-500/30' 
+                : 'text-slate-400 hover:text-slate-300 bg-slate-800 border-slate-700'
+            }`}
+          >
+            <Activity className="w-3 h-3" /> Live Analytics
           </button>
 
           <button 
             onClick={onToggleCopilot}
-            className={`flex items-center gap-2 px-2.5 py-1 text-xs font-bold rounded-md transition-all border ${
+            className={`flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded-md transition-all border ${
               showCopilot 
                 ? 'text-blue-400 bg-blue-500/20 border-blue-500/30' 
                 : 'text-slate-400 hover:text-slate-300 bg-slate-800 border-slate-700'
             }`}
           >
-            <Bot className="w-3.5 h-3.5" /> Copilot
+            <Sparkles className="w-3 h-3" /> Copilot
           </button>
 
           <button 
             onClick={() => handleProFeatureClick(setIsColdEmailModalOpen)}
-            className="flex items-center gap-2 px-2.5 py-1 text-xs font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-md transition-all border border-indigo-500/20"
+            className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-md transition-all border border-indigo-500/20"
           >
-            <Mail className="w-3.5 h-3.5" /> Networking {isPro ? '' : ' 🔒'}
+            <Mail className="w-3 h-3" /> Networking {isPro ? '' : ' 🔒'}
           </button>
 
           <button 
             onClick={() => handleProFeatureClick(setIsTailorModalOpen)}
-            className="flex items-center gap-2 px-2.5 py-1 text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 hover:from-blue-300 hover:to-purple-300 hover:bg-white/5 rounded-md transition-all border border-purple-500/30"
+            className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 hover:from-blue-300 hover:to-purple-300 hover:bg-white/5 rounded-md transition-all border border-purple-500/30"
           >
-            <Sparkles className="w-3.5 h-3.5 text-purple-400" /> Auto-Tailor {isPro ? '' : ' 🔒'}
+            <Sparkles className="w-3 h-3 text-purple-400" /> Auto-Tailor {isPro ? '' : ' 🔒'}
           </button>
           <button 
             onClick={() => setIsIconManagerOpen(true)}
-            className="flex items-center gap-2 px-2.5 py-1 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md transition-all"
+            className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md transition-all"
           >
-            <ImageIcon className="w-3.5 h-3.5" /> Icons
+            <ImageIcon className="w-3 h-3" /> Icons
           </button>
           
           <div className="h-6 w-px bg-slate-700 mx-1"></div>
 
           <button 
             onClick={toggleAutoCompile}
-            className={`flex items-center gap-2 px-2.5 py-1 text-xs font-bold rounded-md transition-all border ${
+            className={`flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded-md transition-all border ${
               isAutoCompile 
                 ? 'text-green-400 bg-green-500/20 border-green-500/30' 
                 : 'text-slate-400 hover:text-slate-300 bg-slate-800 border-slate-700'
@@ -141,13 +169,13 @@ export function EditorToolbar({ isCompiling, onCompile, onDownload, isSaving, on
           <button 
             onClick={onCompile}
             disabled={isCompiling || isAutoCompile}
-            className="flex items-center gap-2 px-2.5 py-1 bg-slate-800 text-white text-xs font-medium rounded-md hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1 px-2 py-0.5 bg-slate-800 text-white text-[11px] font-medium rounded-md hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Play className="h-3.5 w-3.5" /> Compile
           </button>
           <button 
             onClick={onDownload}
-            className="flex items-center gap-2 px-2.5 py-1 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-1 px-2 py-0.5 bg-blue-600 text-white text-[11px] font-medium rounded-md hover:bg-blue-700 transition-colors"
           >
             <Download className="h-3.5 w-3.5" /> Download PDF
           </button>

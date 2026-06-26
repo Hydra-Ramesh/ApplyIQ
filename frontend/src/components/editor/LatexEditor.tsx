@@ -157,11 +157,30 @@ export const LatexEditor = React.memo(({ value, onChange, onEditorMount }: Latex
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorInstanceRef.current = editor;
     
-    // Define a custom transparent theme
+    // Register basic latex syntax highlighting
+    monaco.languages.register({ id: 'latex' });
+    monaco.languages.setMonarchTokensProvider('latex', {
+      tokenizer: {
+        root: [
+          [/\\[a-zA-Z@]+/, 'keyword'],
+          [/\\./, 'keyword'],
+          [/[{}()\[\]]/, 'delimiter'],
+          [/(%.*)$/, 'comment'],
+          [/\$.*?\$/, 'string'],
+        ]
+      }
+    });
+
+    // Define a custom transparent theme matching VS Code colors
     monaco.editor.defineTheme('glassmorphism', {
       base: 'vs-dark',
       inherit: true,
-      rules: [],
+      rules: [
+        { token: 'keyword', foreground: 'C586C0' },
+        { token: 'delimiter', foreground: 'D4D4D4' },
+        { token: 'comment', foreground: '6A9955', fontStyle: 'italic' },
+        { token: 'string', foreground: 'CE9178' },
+      ],
       colors: {
         'editor.background': '#00000000', // transparent
       }

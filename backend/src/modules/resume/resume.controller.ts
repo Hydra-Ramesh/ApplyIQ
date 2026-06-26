@@ -68,7 +68,7 @@ export class ResumeController {
   async updateResume(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { title, texCode, targetRole, chatHistory } = req.body;
+      const { title, texCode, targetRole, chatHistory, atsScore } = req.body;
       const resume = await Resume.findById(id);
       if (!resume) return res.status(404).json({ message: 'Resume not found' });
       
@@ -78,6 +78,7 @@ export class ResumeController {
       if (texCode !== undefined) resume.texCode = texCode;
       if (targetRole !== undefined) resume.targetRole = targetRole;
       if (chatHistory !== undefined) resume.chatHistory = chatHistory;
+      if (atsScore !== undefined) resume.atsScore = atsScore;
 
       await resume.save();
       return res.status(200).json(resume);
@@ -118,6 +119,19 @@ export class ResumeController {
       });
     } catch (error) {
       return res.status(500).json({ message: 'Failed to fetch resumes' });
+    }
+  }
+
+  // DELETE /api/resumes/:id
+  async deleteResume(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const resume = await Resume.findByIdAndDelete(id);
+      if (!resume) return res.status(404).json({ message: 'Resume not found' });
+      
+      return res.status(200).json({ message: 'Resume deleted successfully' });
+    } catch (error) {
+      return res.status(500).json({ message: 'Failed to delete resume' });
     }
   }
 }

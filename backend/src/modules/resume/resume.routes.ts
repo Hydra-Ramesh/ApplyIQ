@@ -10,5 +10,6 @@ router.get('/', resumeController.getResumes);
 router.post('/', resumeController.createResume);
 router.get('/:id', resumeController.getResumeById);
 router.put('/:id', resumeController.updateResume);
+router.delete('/:id', resumeController.deleteResume);
 
 export default router;

@@ -61,7 +61,7 @@ export const getResume = async (id: string) => {
   return response.json();
 };
 
-export const updateResume = async (id: string, data: Partial<{ title: string; targetRole: string; texCode: string; userId?: string; chatHistory?: {role: string, content: string}[] }>) => {
+export const updateResume = async (id: string, data: Partial<{ title: string; targetRole: string; texCode: string; userId?: string; chatHistory?: {role: string, content: string}[], atsScore?: number }>) => {
   const response = await fetch(`${env.VITE_API_URL}/resumes/${id}`, {
     method: 'PUT',
     headers: {
@@ -71,5 +71,16 @@ export const updateResume = async (id: string, data: Partial<{ title: string; ta
     body: JSON.stringify(data),
   });
   if (!response.ok) throw new Error('Failed to update resume');
+  return response.json();
+};
+
+export const deleteResume = async (id: string) => {
+  const response = await fetch(`${env.VITE_API_URL}/resumes/${id}`, {
+    method: 'DELETE',
+    headers: {
+      ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {})
+    }
+  });
+  if (!response.ok) throw new Error('Failed to delete resume');
   return response.json();
 };

@@ -12,7 +12,8 @@ REWRITE_BULLET_PROMPT = PromptTemplate.from_template(
 OPTIMIZE_ATS_PROMPT = PromptTemplate.from_template(
     "You are an expert ATS (Applicant Tracking System) optimizer. "
     "Analyze the given resume against the job description. "
-    "Provide a score from 0-100, list missing keywords, and suggest improvements.\n\n"
+    "Provide a score from 0-100, list missing keywords, and suggest improvements.\n"
+    "CRITICAL: You MUST output the numerical score wrapped in <score> and </score> tags at the very beginning of your response. For example: <score>85</score>.\n\n"
     "Job Description:\n{job_description}\n\n"
     "Resume:\n{resume_text}\n\n"
     "Analysis:"
@@ -45,14 +46,17 @@ AUTOCOMPLETE_PROMPT = PromptTemplate.from_template(
 
 ROAST_PROMPT = PromptTemplate.from_template(
     "You are a brutally honest, savage, but ultimately helpful FAANG Senior Technical Recruiter. "
-    "A candidate has just handed you their resume. "
-    "Your job is to absolutely ROAST their resume. Tear apart their cliches, their buzzwords, "
-    "their lack of metrics, and any weak formatting. "
+    "A candidate has just handed you their resume content (which happens to be formatted in LaTeX). "
+    "CRITICAL RULE: IGNORE THE LATEX SYNTAX COMPLETELY. DO NOT complain about LaTeX, packages, or code formatting. "
+    "Your job is to absolutely ROAST the ACTUAL CONTENT of their resume. Tear apart their cliches, their buzzwords, "
+    "their lack of metrics, and any weak bullet points. "
     "Be funny, sarcastic, and ruthless. "
-    "However, at the very end, drop the act and provide 3 genuinely good, actionable bullet points "
-    "on how they can fix it. "
+    "HOWEVER, you must also recognize and appreciate genuine achievements. If they have a high CGPA, strong education, "
+    "extraordinary coding achievements, or impressive projects, make sure to explicitly discuss and praise them amidst the roast. "
+    "At the very end, drop the act and provide 3 genuinely good, actionable bullet points "
+    "on how they can fix their content. "
     "Format your response in Markdown. Use emojis. \n\n"
-    "Resume:\n{tex_code}\n\n"
+    "Resume Content:\n{tex_code}\n\n"
     "Your Savage Roast:"
 )
 
@@ -206,9 +210,16 @@ COPILOT_PROMPT = PromptTemplate.from_template(
     "The user has provided their current LaTeX resume code, and a natural language prompt with instructions on how to modify it.\n"
     "Your job is to apply the requested changes perfectly, ensuring the LaTeX remains valid and compiles successfully.\n"
     "DO NOT hallucinate changes the user did not ask for.\n"
-    "RETURN ONLY THE COMPILED LATEX CODE. DO NOT ADD ANY MARKDOWN BACKTICKS, EXPLANATIONS, OR PREAMBLES. "
-    "RETURN RAW TEXT ONLY.\n\n"
+    "You must return your response using exactly these two XML tags:\n"
+    "<message>\n"
+    "A short, friendly, and human-like response confirming the change or addressing the user's message (e.g. 'Hello! I have updated your font size.').\n"
+    "</message>\n"
+    "<tex_code>\n"
+    "The fully updated, valid LaTeX code here. Write it exactly as you would in a normal .tex file. You do not need to double-escape backslashes for JSON.\n"
+    "</tex_code>\n\n"
+    "PAST CONVERSATION HISTORY:\n{history}\n\n"
     "USER INSTRUCTION: {instruction}\n\n"
     "CURRENT LATEX CODE:\n{tex_code}\n\n"
-    "UPDATED LATEX CODE:"
+    "YOUR RESPONSE:"
 )
+

@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { useEditorStore, DEFAULT_GREETING } from "../../../shared/hooks/useEditorStore";
-import { Send, Bot, Sparkles, Loader2, Trash } from "lucide-react";
+import { Send, Bot, Sparkles, Loader2, Trash, User } from "lucide-react";
 import { updateResume } from "../../dashboard/api/resume.api";
 
-export function CopilotSidebar() {
+interface CopilotSidebarProps {
+  compilationError?: string | null;
+}
+
+export function CopilotSidebar({ compilationError }: CopilotSidebarProps = {}) {
   const { code, setCode, currentResumeId, chatHistory, setChatHistory } = useEditorStore();
   const [instruction, setInstruction] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -36,11 +40,23 @@ export function CopilotSidebar() {
     setChatHistory(newHistory);
     setIsProcessing(true);
 
+    let finalInstruction = userMsg;
+    if (compilationError) {
+      finalInstruction += `\n\nNote: The current LaTeX code has this compilation error that needs fixing: ${compilationError}`;
+      if (compilationError.includes("Missing $ inserted")) {
+        finalInstruction += `\nHint for AI: 'Missing $ inserted' in LaTeX is almost always caused by an unescaped underscore ('_') or ampersand ('&') in plain text (like an email address, URL, or name). Please carefully scan the code for any unescaped '_' and replace them with '\\_'.`;
+      }
+    }
+
     try {
       const res = await fetch(`${import.meta.env.VITE_AI_URL}/api/v1/resume/copilot`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tex_code: code, instruction: userMsg })
+        body: JSON.stringify({ 
+          tex_code: code, 
+          instruction: finalInstruction,
+          chat_history: chatHistory
+        })
       });
 
       if (!res.ok) throw new Error('Failed to reach Copilot');
@@ -48,7 +64,8 @@ export function CopilotSidebar() {
       
       setCode(data.tex_code);
       
-      const finalHistory = [...newHistory, { role: 'assistant' as const, content: "I've updated the LaTeX code based on your instructions! The preview will recompile automatically." }];
+      const aiResponseText = data.message || "I've updated the LaTeX code based on your instructions! The preview will recompile automatically.";
+      const finalHistory = [...newHistory, { role: 'assistant' as const, content: aiResponseText }];
       setChatHistory(finalHistory);
       
       if (currentResumeId) {
@@ -68,14 +85,24 @@ export function CopilotSidebar() {
 
   return (
     <div className="h-full w-full flex flex-col bg-[#0A0A0B] border-r border-white/10 relative z-20 shadow-2xl overflow-hidden">
-      <div className="p-4 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-blue-900/20 to-purple-900/20">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-blue-400" />
-          <h2 className="font-bold text-white tracking-wide">AI Copilot</h2>
+      <div className="p-4 border-b border-white/5 flex items-center justify-between bg-[#111216]">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-indigo-400 to-purple-400 p-[2px] shadow-lg shadow-indigo-500/20">
+            <div className="w-full h-full bg-[#16181D] rounded-full flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-purple-300" />
+            </div>
+          </div>
+          <div>
+            <h2 className="font-semibold text-white/90 text-sm">Resume Assistant</h2>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
+              <span className="text-[10px] text-emerald-400/90 uppercase tracking-wider font-medium">Online</span>
+            </div>
+          </div>
         </div>
         <button 
           onClick={() => setShowClearConfirm(true)}
-          className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-red-400 bg-white/5 hover:bg-red-500/10 px-2 py-1 rounded transition-colors"
+          className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-red-400 bg-white/5 hover:bg-red-500/10 px-2 py-1.5 rounded-md transition-colors"
           title="Clear all chat history"
         >
           <Trash className="w-3.5 h-3.5" /> Clear
@@ -84,22 +111,22 @@ export function CopilotSidebar() {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {chatHistory.map((msg, idx) => (
-          <div key={idx} className={`group relative flex gap-3 \${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div key={idx} className={`group relative flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 border border-blue-500/30">
-                <Bot className="w-4 h-4 text-blue-400" />
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0 border border-indigo-500/20 mt-1 shadow-sm">
+                <Sparkles className="w-4 h-4 text-indigo-300" />
               </div>
             )}
-            <div className={`relative p-3.5 rounded-2xl max-w-[85%] text-sm leading-relaxed \${
+            <div className={`relative px-4 py-3 rounded-2xl max-w-[85%] text-[13.5px] leading-relaxed shadow-sm ${
               msg.role === 'user' 
-                ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg border border-blue-500/30' 
-                : 'bg-[#16181D] text-slate-200 border border-white/10 shadow-md'
+                ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-tr-sm border border-indigo-500/30' 
+                : 'bg-[#1A1C23] text-slate-200 rounded-tl-sm border border-white/5'
             }`}>
               {msg.content}
               {/* Delete Button (visible on hover) */}
               <button
                 onClick={() => handleDeleteMessage(idx)}
-                className={`absolute top-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-slate-400 hover:text-red-400 bg-slate-800 hover:bg-slate-700 rounded-full shadow-md \${
+                className={`absolute top-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-slate-400 hover:text-red-400 bg-[#242730] hover:bg-slate-700 rounded-full shadow-md ${
                   msg.role === 'user' ? '-left-8' : '-right-8'
                 }`}
                 title="Delete Message"
@@ -107,37 +134,43 @@ export function CopilotSidebar() {
                 <Trash className="w-3 h-3" />
               </button>
             </div>
+            {msg.role === 'user' && (
+              <div className="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center flex-shrink-0 border border-white/10 mt-1">
+                <User className="w-4 h-4 text-slate-300" />
+              </div>
+            )}
           </div>
         ))}
         {isProcessing && (
           <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-              <Bot className="w-4 h-4 text-blue-400" />
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0 border border-indigo-500/20 mt-1 shadow-sm">
+              <Sparkles className="w-4 h-4 text-indigo-300" />
             </div>
-            <div className="p-3.5 rounded-2xl bg-[#16181D] border border-white/10 shadow-md flex items-center gap-2 text-slate-400 text-sm">
-              <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
-              Updating your LaTeX code...
+            <div className="px-5 py-4 rounded-2xl rounded-tl-sm bg-[#1A1C23] border border-white/5 shadow-sm flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }}></div>
             </div>
           </div>
         )}
       </div>
 
-      <div className="p-4 bg-black/40 border-t border-white/10 backdrop-blur-md relative z-30">
-        <form onSubmit={handleSubmit} className="relative flex items-center">
+      <div className="p-4 bg-[#0A0A0B] border-t border-white/5 relative z-30">
+        <form onSubmit={handleSubmit} className="relative flex items-center group">
           <input
             type="text"
             value={instruction}
             onChange={(e) => setInstruction(e.target.value)}
             disabled={isProcessing}
-            placeholder="E.g. Change title font to bold..."
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-4 pr-12 text-sm text-white placeholder-white/30 focus:border-blue-500 outline-none transition-all disabled:opacity-50"
+            placeholder="Ask me to tweak your resume..."
+            className="w-full bg-[#16181D] border border-white/10 focus:border-indigo-500/50 focus:bg-[#1A1C23] rounded-full py-3.5 pl-5 pr-14 text-[13px] text-white placeholder-slate-500 outline-none transition-all disabled:opacity-50 shadow-inner"
           />
           <button 
             type="submit" 
             disabled={isProcessing || !instruction.trim()}
-            className="absolute right-2 p-2 text-blue-400 hover:text-blue-300 disabled:opacity-50 transition-colors"
+            className="absolute right-1.5 w-9 h-9 flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 text-white rounded-full disabled:opacity-50 disabled:bg-white/5 disabled:text-slate-500 transition-all shadow-md group-focus-within:shadow-indigo-500/20"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-4 h-4 -ml-0.5" />
           </button>
         </form>
       </div>

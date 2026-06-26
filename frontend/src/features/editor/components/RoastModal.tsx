@@ -12,7 +12,21 @@ export function RoastModal({ isOpen, onClose }: Props) {
   const [roast, setRoast] = useState<string | null>(null);
   const [isRoasting, setIsRoasting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
   const { code } = useEditorStore();
+
+  const handleShareTwitter = () => {
+    const text = encodeURIComponent("I just got my resume brutally roasted by ApplyIQ's AI recruiter. 😭🔥\n\nGet yours roasted: https://applyiq.com");
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+  };
+
+  const handleCopyToClipboard = () => {
+    if (roast) {
+      navigator.clipboard.writeText(roast);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -22,7 +36,7 @@ export function RoastModal({ isOpen, onClose }: Props) {
     setRoast(null);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_AI_URL}/resume/roast-stream`, {
+      const response = await fetch(`${import.meta.env.VITE_AI_URL}/api/v1/resume/roast-stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tex_code: code }),
@@ -101,7 +115,7 @@ export function RoastModal({ isOpen, onClose }: Props) {
               </div>
             </div>
             
-            <div className="prose prose-invert prose-orange max-w-none prose-p:leading-relaxed">
+            <div className="text-slate-200 text-sm leading-relaxed [&_p]:mb-4 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-white [&_h1]:mb-4 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-white [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-white [&_h3]:mb-2 [&_strong]:text-orange-400 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-4 [&_li]:mb-1 [&_blockquote]:border-l-4 [&_blockquote]:border-orange-500 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-slate-400">
               <ReactMarkdown>{roast}</ReactMarkdown>
             </div>
 
@@ -110,11 +124,17 @@ export function RoastModal({ isOpen, onClose }: Props) {
                 Ouch. Want to share your pain?
               </p>
               <div className="flex gap-3">
-                <button className="flex items-center gap-2 px-4 py-2 bg-[#1DA1F2]/10 text-[#1DA1F2] hover:bg-[#1DA1F2]/20 rounded-lg transition-colors font-medium">
+                <button 
+                  onClick={handleShareTwitter}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#1DA1F2]/10 text-[#1DA1F2] hover:bg-[#1DA1F2]/20 rounded-lg transition-colors font-medium"
+                >
                   <Share2 className="w-4 h-4" /> Share on Twitter
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-[#0A66C2]/10 text-[#0A66C2] hover:bg-[#0A66C2]/20 rounded-lg transition-colors font-medium">
-                  <Share2 className="w-4 h-4" /> Share on LinkedIn
+                <button 
+                  onClick={handleCopyToClipboard}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#0A66C2]/10 text-[#0A66C2] hover:bg-[#0A66C2]/20 rounded-lg transition-colors font-medium"
+                >
+                  <Share2 className="w-4 h-4" /> {isCopied ? "Copied!" : "Copy for LinkedIn"}
                 </button>
               </div>
             </div>

@@ -35,7 +35,7 @@ export function IconManagerModal({ isOpen, onClose }: IconManagerModalProps) {
       const formData = new FormData();
       formData.append("icon", file);
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/v1/auth/me/icon`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/me/icon`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

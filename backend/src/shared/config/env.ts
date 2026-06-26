@@ -10,8 +10,8 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().min(1),
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
-  CHECKOUT_URL: z.string().url().default('https://apply-iq-rs13.vercel.app/dashboard'),
-  FRONTEND_URL: z.string().url().default('https://apply-iq-rs13.vercel.app'),
+  CHECKOUT_URL: z.string().url().default('http://localhost:5173/dashboard'),
+  FRONTEND_URL: z.string().url().default('http://localhost:5173'),
   AI_SERVICE_URL: z.string().url().default('https://applyiq-ai-service.onrender.com'),
 });
 

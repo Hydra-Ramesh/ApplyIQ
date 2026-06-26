@@ -14,7 +14,14 @@ self.onmessage = async (e) => {
     });
     
     if (!response.ok) {
-      throw new Error('Compilation failed. Please check LaTeX syntax.');
+      let errorMsg = 'Compilation failed. Please check LaTeX syntax.';
+      try {
+        const errorData = await response.json();
+        if (errorData.detail) errorMsg = errorData.detail;
+      } catch (e) {
+        // Fallback to generic if not JSON
+      }
+      throw new Error(errorMsg);
     }
     
     const blob = await response.blob();

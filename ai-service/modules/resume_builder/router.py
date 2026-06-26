@@ -4,9 +4,12 @@ import hashlib
 from fastapi.responses import StreamingResponse
 from .orchestrator import rewrite_bullet, optimize_ats, tailor_resume, autocomplete_text, roast_resume, generate_cold_email, stream_roast, stream_cold_email, generate_resume, copilot_edit
 from core.redis_client import redis_cache
-from typing import Dict, Any
+from typing import Dict, Any, Optional, List
+from .llm import get_llm
+from .websocket import ws_router
 
 router = APIRouter(prefix="/resume", tags=["Resume Builder"])
+router.include_router(ws_router)
 
 def generate_cache_key(prefix: str, content: str) -> str:
     return f"{prefix}:{hashlib.md5(content.encode()).hexdigest()}"
@@ -165,13 +168,14 @@ async def api_generate_resume(req: ResumeGenerateRequest):
 class CopilotRequest(BaseModel):
     tex_code: str
     instruction: str
+    chat_history: Optional[List[Dict[str, Any]]] = None
 
 @router.post("/copilot")
 async def api_copilot_edit(req: CopilotRequest):
     try:
         # Don't cache copilot responses as they are highly dynamic
-        result = copilot_edit(req.tex_code, req.instruction)
-        return {"tex_code": result}
+        result = copilot_edit(req.tex_code, req.instruction, req.chat_history)
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -194,8 +198,14 @@ async def api_compile_latex(req: CompileRequest):
             # Automatically strip out duplicate fontawesome package if it's there
             clean_tex_code = re.sub(r'\\(?:RequirePackage|usepackage)\{fontawesome\}', '', req.tex_code)
             
+            # Automatically escape hashes in \href to prevent 'Illegal parameter number' errors
+            clean_tex_code = re.sub(r'\\href\{#\}', r'\\href{\\#}', clean_tex_code)
+            
+            # Auto-fix missing \item when \resumeItemListStart immediately follows \resumeSubHeadingListStart
+            clean_tex_code = re.sub(r'(\\resumeSubHeadingListStart\s*\\resumeItemListStart)', r'\\resumeSubHeadingListStart\n        \\item\n            \\resumeItemListStart', clean_tex_code)
+            
             # Automatically strip out mistakenly added \\ at the end of \resumeItem
-            clean_lines = []
+            clean_lines = [r'\nonstopmode']
             for line in clean_tex_code.split('\n'):
                 if r'\resumeItem' in line:
                     line = re.sub(r'\\\\\s*$', '', line.rstrip())
@@ -243,8 +253,18 @@ async def api_compile_latex(req: CompileRequest):
         if response.status_code == 200 and response.headers.get("content-type") == "application/pdf":
             return Response(content=response.content, media_type="application/pdf")
         else:
-            print("LATEX COMPILE ERROR LOG:", response.text)
-            raise HTTPException(status_code=400, detail="Compilation failed. Check backend logs for LaTeX errors.")
+            log_text = response.text
+            print("LATEX COMPILE ERROR LOG:", log_text)
+            
+            error_lines = [line[2:].strip() for line in log_text.split('\n') if line.startswith('! ')]
+            unique_errors = []
+            for err in error_lines:
+                if err not in unique_errors and err not in ["Emergency stop.", "==> Fatal error occurred, no output PDF file produced!"]:
+                    unique_errors.append(err)
+                    
+            error_msg = " | ".join(unique_errors) if unique_errors else "Compilation failed. Check LaTeX syntax."
+            
+            raise HTTPException(status_code=400, detail=error_msg)
     except HTTPException:
         raise
     except Exception as e:

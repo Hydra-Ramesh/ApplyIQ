@@ -4,7 +4,7 @@ from key_manager import key_manager
 
 def get_llm():
     current_key = key_manager.get_current_key()
-    return ChatGroq(temperature=0.7, model_name="llama-3.1-8b-instant", groq_api_key=current_key)
+    return ChatGroq(temperature=0.7, model_name="llama-3.1-8b-instant", max_tokens=4000, groq_api_key=current_key)
 
 def execute_with_rotation(func, *args, **kwargs):
     """Executes a LangChain LLM function, rotating keys if a 429 occurs."""
