@@ -68,8 +68,7 @@ export function EditorLayout() {
       });
     } else if (!resumeIdParam && currentResumeId) {
       // Unset if navigating to raw /editor
-      setCurrentResumeId(null);
-      setTitle("");
+      useEditorStore.getState().resetCode();
     }
   }, [resumeIdParam]);
 

@@ -40,6 +40,7 @@ export function TemplateGallery() {
   }, []);
 
   const handleSelectTemplate = (latexCode: string) => {
+    useEditorStore.getState().resetCode();
     setCode(latexCode);
     navigate("/editor");
   };

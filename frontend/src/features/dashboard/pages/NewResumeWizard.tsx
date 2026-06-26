@@ -50,6 +50,7 @@ export function NewResumeWizard() {
       const data = await response.json();
       
       if (data.tex_code) {
+        useEditorStore.getState().resetCode();
         setCode(data.tex_code);
         navigate('/editor');
       } else {
