@@ -29,6 +29,7 @@ router.delete('/blogs/:id', adminController.deleteBlog);
 
 // Contacts
 router.get('/contacts', adminController.getContacts);
+router.delete('/contacts/:id', adminController.deleteContact);
 
 // Testimonials
 router.get('/testimonials', adminController.getTestimonials);

@@ -166,6 +166,15 @@ export const adminController = {
     }
   },
 
+  deleteContact: async (req: Request, res: Response) => {
+    try {
+      await ContactMessage.findByIdAndDelete(req.params.id);
+      res.status(200).json({ message: 'Contact message deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error deleting contact message', error });
+    }
+  },
+
   // Testimonials
   getTestimonials: async (req: Request, res: Response) => {
     try {

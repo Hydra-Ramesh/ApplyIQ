@@ -161,24 +161,54 @@ export function AdminDashboard() {
     }
   };
 
+  const handleDeleteContact = async (id: string) => {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/contacts/${id}`, { method: 'DELETE', headers });
+    if (res.ok) {
+      toast.success("Message deleted successfully!");
+      fetchContacts();
+    } else {
+      toast.error("Failed to delete message.");
+    }
+  };
+
   const handleToggleTestimonial = async (id: string) => {
-    await fetch(`${import.meta.env.VITE_API_URL}/admin/testimonials/${id}/publish`, { method: 'PUT', headers });
-    fetchTestimonials();
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/testimonials/${id}/publish`, { method: 'PUT', headers });
+    if (res.ok) {
+      toast.success("Testimonial visibility updated!");
+      fetchTestimonials();
+    } else {
+      toast.error("Failed to update testimonial.");
+    }
   };
 
   const handleDeleteTestimonial = async (id: string) => {
-    await fetch(`${import.meta.env.VITE_API_URL}/admin/testimonials/${id}`, { method: 'DELETE', headers });
-    fetchTestimonials();
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/testimonials/${id}`, { method: 'DELETE', headers });
+    if (res.ok) {
+      toast.success("Testimonial deleted successfully!");
+      fetchTestimonials();
+    } else {
+      toast.error("Failed to delete testimonial.");
+    }
   };
 
   const handleToggleReport = async (id: string) => {
-    await fetch(`${import.meta.env.VITE_API_URL}/admin/reports/${id}/resolve`, { method: 'PUT', headers });
-    fetchReports();
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/reports/${id}/resolve`, { method: 'PUT', headers });
+    if (res.ok) {
+      toast.success("Report status updated!");
+      fetchReports();
+    } else {
+      toast.error("Failed to update report.");
+    }
   };
 
   const handleDeleteReport = async (id: string) => {
-    await fetch(`${import.meta.env.VITE_API_URL}/admin/reports/${id}`, { method: 'DELETE', headers });
-    fetchReports();
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/reports/${id}`, { method: 'DELETE', headers });
+    if (res.ok) {
+      toast.success("Report deleted successfully!");
+      fetchReports();
+    } else {
+      toast.error("Failed to delete report.");
+    }
   };
 
   const submitReplyReport = async () => {
@@ -395,7 +425,10 @@ export function AdminDashboard() {
                     <h3 className="font-bold text-lg">{c.name}</h3>
                     <a href={`mailto:${c.email}`} className="text-blue-400 text-sm hover:underline">{c.email}</a>
                   </div>
-                  <span className="text-xs text-white/40">{new Date(c.createdAt).toLocaleString()}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs text-white/40">{new Date(c.createdAt).toLocaleString()}</span>
+                    <button onClick={() => handleDeleteContact(c._id)} className="text-red-400 hover:bg-red-500/10 p-2 rounded-lg"><Trash className="w-4 h-4" /></button>
+                  </div>
                 </div>
                 <p className="text-white/80 bg-black/30 p-4 rounded-lg border border-white/5 whitespace-pre-wrap">{c.message}</p>
               </div>
