@@ -22,7 +22,7 @@ The platform is designed using a modern microservices architecture, splitting re
 graph TD
     Client[Web Client - React/Vite]
     
-    subgap Gateway
+    subgraph Gateway
         Backend[Node.js / Express Backend]
         AI[Python / FastAPI AI Service]
     end
