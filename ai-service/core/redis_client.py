@@ -33,4 +33,15 @@ class RedisCache:
         else:
             self.memory_cache[key] = value
 
+    def incr(self, key: str):
+        if self.client:
+            return self.client.incr(key)
+        else:
+            current = self.memory_cache.get(key, 0)
+            if current is None:
+                current = 0
+            current = int(current) + 1
+            self.memory_cache[key] = current
+            return current
+
 redis_cache = RedisCache()

@@ -1,12 +1,14 @@
 import { useState, useRef } from "react";
 import { useAuthStore } from "@/shared/hooks/useAuthStore";
-import { Camera, User, Lock, LogOut, Loader2, Save } from "lucide-react";
+import { Camera, User, LogOut, Loader2, Save, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { UpgradeModal } from "../../editor/components/UpgradeModal";
 
 export function Profile() {
   const { user, updateUser, logout } = useAuthStore();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   // Avatar State
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -15,12 +17,6 @@ export function Profile() {
   const [name, setName] = useState(user?.name || "");
   const [isSavingName, setIsSavingName] = useState(false);
   const [nameMessage, setNameMessage] = useState("");
-
-  // Password State
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [passwordMessage, setPasswordMessage] = useState("");
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -86,35 +82,6 @@ export function Profile() {
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsChangingPassword(true);
-    setPasswordMessage("");
-
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/change-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to change password");
-
-      setPasswordMessage("Password changed successfully");
-      setCurrentPassword("");
-      setNewPassword("");
-      setTimeout(() => setPasswordMessage(""), 3000);
-    } catch (err: any) {
-      setPasswordMessage(`Error: ${err.message}`);
-    } finally {
-      setIsChangingPassword(false);
-    }
-  };
-
   const handleLogout = async () => {
     try {
       await fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
@@ -128,27 +95,51 @@ export function Profile() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] bg-black text-white p-8 lg:p-12 relative overflow-hidden">
+    <div className="min-h-[calc(100vh-5rem)] bg-background text-foreground p-8 lg:p-12 relative overflow-hidden">
       {/* Background gradients */}
       <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none" />
       
       <div className="max-w-3xl mx-auto relative z-10">
-        <h1 className="text-3xl font-bold mb-8">Profile Settings</h1>
+        <h1 className="text-3xl font-bold mb-8">My Profile</h1>
 
         <div className="space-y-8">
+          {/* Pro Upgrade Banner */}
+          {user?.subscriptionTier !== 'pro' && (
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-800 text-white p-8 shadow-xl border border-purple-400/30">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                    <Sparkles className="w-6 h-6 text-yellow-300" />
+                    Upgrade to ApplyIQ Pro
+                  </h2>
+                  <p className="text-indigo-100 max-w-lg">
+                    Unlock unlimited PDF exports, our elite AI Copilot, priority support, and secure a premium golden avatar badge!
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsUpgradeModalOpen(true)}
+                  className="px-6 py-3 bg-white text-indigo-900 font-bold rounded-xl hover:bg-indigo-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 whitespace-nowrap"
+                >
+                  Upgrade Now
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Avatar Section */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 lg:p-8 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-card to-secondary/50 dark:to-muted/30 text-card-foreground border border-border/60 shadow-sm rounded-2xl p-6 lg:p-8 backdrop-blur-sm">
             <h2 className="text-xl font-semibold mb-6">Profile Picture</h2>
             <div className="flex items-center gap-6">
               <div 
                 onClick={handleAvatarClick}
-                className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-white/10 bg-black/50 cursor-pointer group hover:border-blue-500/50 transition-colors"
+                className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-border bg-muted cursor-pointer group hover:border-primary/50 transition-colors"
               >
                 {user?.avatarUrl ? (
                   <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <User className="w-10 h-10 text-white/30" />
+                    <User className="w-10 h-10 text-muted-foreground" />
                   </div>
                 )}
                 
@@ -164,12 +155,12 @@ export function Profile() {
                 )}
               </div>
               <div>
-                <p className="text-sm text-slate-400 mb-2">
+                <p className="text-sm text-muted-foreground mb-2">
                   Upload a new profile picture. Recommended size: 256x256px.
                 </p>
                 <button 
                   onClick={handleAvatarClick}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="px-4 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-medium rounded-lg transition-colors"
                   disabled={isUploadingAvatar}
                 >
                   Choose Image
@@ -186,33 +177,33 @@ export function Profile() {
           </div>
 
           {/* Personal Info Section */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 lg:p-8 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-card to-secondary/50 dark:to-muted/30 text-card-foreground border border-border/60 shadow-sm rounded-2xl p-6 lg:p-8 backdrop-blur-sm">
             <h2 className="text-xl font-semibold mb-6">Personal Information</h2>
             <form onSubmit={handleSaveName} className="space-y-4 max-w-md">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Email Address (Read-only)</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">Email Address (Read-only)</label>
                 <input 
                   type="email" 
                   value={user?.email || ""} 
                   disabled 
-                  className="w-full px-4 py-2.5 bg-black/50 border border-white/5 rounded-xl text-slate-400 cursor-not-allowed focus:outline-none" 
+                  className="w-full px-4 py-2.5 bg-muted/50 border border-border/60 rounded-xl text-muted-foreground cursor-not-allowed focus:outline-none" 
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Display Name</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">Display Name</label>
                 <input 
                   type="text" 
                   value={name} 
                   onChange={(e) => setName(e.target.value)}
                   placeholder="E.g. John Doe"
-                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 focus:outline-none focus:border-blue-500/50 transition-colors" 
+                  className="w-full px-4 py-2.5 bg-background/80 backdrop-blur-sm border border-input/60 shadow-sm rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" 
                 />
               </div>
               <div className="flex items-center gap-4 pt-2">
                 <button 
                   type="submit" 
                   disabled={isSavingName || name === (user?.name || "")}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground text-sm font-medium rounded-xl transition-colors"
                 >
                   {isSavingName ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Save Changes
@@ -226,72 +217,25 @@ export function Profile() {
             </form>
           </div>
 
-          {/* Password Section */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 lg:p-8 backdrop-blur-sm">
-            <h2 className="text-xl font-semibold mb-6">Change Password</h2>
-            <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+          {/* Account Actions Section */}
+          <div className="bg-gradient-to-br from-card to-secondary/50 dark:to-muted/30 text-card-foreground border border-border/60 shadow-sm rounded-2xl p-6 lg:p-8 backdrop-blur-sm">
+            <h2 className="text-xl font-semibold mb-6">Account Actions</h2>
+            <div className="flex items-center justify-between p-4 bg-muted/40 border border-border/50 rounded-xl">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Current Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                  <input 
-                    type="password" 
-                    required
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50 transition-colors" 
-                  />
-                </div>
+                <h3 className="text-foreground font-medium mb-1">Sign Out</h3>
+                <p className="text-sm text-muted-foreground">Log out of your account on this device.</p>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">New Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                  <input 
-                    type="password" 
-                    required
-                    minLength={8}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50 transition-colors" 
-                  />
-                </div>
-              </div>
-              <div className="flex items-center gap-4 pt-2">
-                <button 
-                  type="submit" 
-                  disabled={isChangingPassword || !currentPassword || !newPassword}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors"
-                >
-                  {isChangingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
-                  Update Password
-                </button>
-                {passwordMessage && (
-                  <span className={`text-sm ${passwordMessage.startsWith('Error') ? 'text-red-400' : 'text-emerald-400'}`}>
-                    {passwordMessage}
-                  </span>
-                )}
-              </div>
-            </form>
+              <button 
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary/80 border border-border text-foreground text-sm font-medium rounded-lg transition-colors"
+              >
+                <LogOut className="w-4 h-4" /> Sign Out
+              </button>
+            </div>
           </div>
-
-          {/* Danger Zone */}
-          <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 lg:p-8 backdrop-blur-sm">
-            <h2 className="text-xl font-semibold text-red-400 mb-2">Danger Zone</h2>
-            <p className="text-sm text-slate-400 mb-6">
-              Logging out will clear your session on this device.
-            </p>
-            <button 
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-sm font-medium rounded-xl transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </button>
-          </div>
-
         </div>
       </div>
+      <UpgradeModal isOpen={isUpgradeModalOpen} onClose={() => setIsUpgradeModalOpen(false)} />
     </div>
   );
 }

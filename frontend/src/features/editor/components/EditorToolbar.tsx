@@ -98,28 +98,40 @@ export function EditorToolbar({ isCompiling, onCompile, onDownload, isSaving, on
           </button>
           
           <button 
-            onClick={() => setIsRoastModalOpen(true)}
+            onClick={() => handleProFeatureClick(setIsRoastModalOpen)}
             className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold text-orange-500 hover:text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 rounded-md transition-all border border-orange-500/20"
           >
-            <Flame className="w-3 h-3" /> Roast Me
+            <Flame className="w-3 h-3" /> Roast Me {isPro ? '' : ' 🔒'}
           </button>
 
           <button 
-            onClick={onOpenAts}
+            onClick={() => {
+              if (isPro) {
+                if (onOpenAts) onOpenAts();
+              } else {
+                setIsUpgradeModalOpen(true);
+              }
+            }}
             className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-md transition-all border border-blue-500/20"
           >
-            <Target className="w-3 h-3" /> ATS Optimizer
+            <Target className="w-3 h-3" /> ATS Optimizer {isPro ? '' : ' 🔒'}
           </button>
           
           <button 
-            onClick={onToggleLiveAnalytics}
+            onClick={() => {
+              if (isPro) {
+                if (onToggleLiveAnalytics) onToggleLiveAnalytics();
+              } else {
+                setIsUpgradeModalOpen(true);
+              }
+            }}
             className={`flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded-md transition-all border ${
               isLiveAnalyticsOpen 
                 ? 'text-blue-400 bg-blue-500/20 border-blue-500/30' 
                 : 'text-slate-400 hover:text-slate-300 bg-slate-800 border-slate-700'
             }`}
           >
-            <Activity className="w-3 h-3" /> Live Analytics
+            <Activity className="w-3 h-3" /> Live Analytics {isPro ? '' : ' 🔒'}
           </button>
 
           <button 

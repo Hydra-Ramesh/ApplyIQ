@@ -82,7 +82,7 @@ export function EditorLayout() {
     let reconnectTimeout: ReturnType<typeof setTimeout>;
     
     const connectWs = () => {
-      const wsUrl = `${import.meta.env.VITE_AI_URL.replace('http', 'ws')}/api/v1/resume/ws/live-analysis`;
+      const wsUrl = `${import.meta.env.VITE_AI_URL.replace('http', 'ws')}/api/v1/resume/ws/live-analysis?token=${localStorage.getItem('token')}`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
@@ -123,8 +123,10 @@ export function EditorLayout() {
       clearTimeout(reconnectTimeout);
       if (wsRef.current) {
         wsRef.current.onclose = null;
-        if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
+        if (wsRef.current.readyState === WebSocket.OPEN) {
           wsRef.current.close();
+        } else if (wsRef.current.readyState === WebSocket.CONNECTING) {
+          wsRef.current.onopen = () => wsRef.current?.close();
         }
       }
     };

@@ -46,22 +46,36 @@ export function TemplateGallery() {
   };
 
   if (isLoading) {
-    return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white">Loading Templates...</div>;
+    return (
+      <div className="min-h-screen bg-transparent p-8">
+        <div className="max-w-6xl mx-auto space-y-8">
+          <div className="animate-pulse">
+            <div className="h-8 w-48 bg-muted rounded mb-2"></div>
+            <div className="h-4 w-96 bg-muted rounded"></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-48 rounded-xl bg-muted animate-pulse border border-border" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] p-8">
+    <div className="min-h-screen bg-transparent p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Template Gallery</h1>
-          <p className="text-white/60">Choose a pre-built template to start customizing immediately. Free of AI generation costs.</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Template Gallery</h1>
+          <p className="text-muted-foreground">Choose a pre-built template to start customizing immediately. Free of AI generation costs.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {templates.map((template) => (
             <div 
               key={template.id} 
-              className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-white/20 hover:bg-white/10 transition-all cursor-pointer group flex flex-col h-full"
+              className="bg-card border border-border rounded-xl p-6 hover:border-primary/40 hover:bg-secondary/40 transition-all cursor-pointer group flex flex-col h-full"
               onClick={() => handleSelectTemplate(template.latexCode || template.latex)}
             >
               <div className="flex-1">
@@ -69,9 +83,9 @@ export function TemplateGallery() {
                   <div className="p-3 bg-blue-500/20 text-blue-400 rounded-lg">
                     <FileText className="w-6 h-6" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">{template.name}</h3>
+                  <h3 className="text-xl font-bold text-foreground">{template.name}</h3>
                 </div>
-                <p className="text-white/60 text-sm leading-relaxed mb-6">
+                <p className="text-muted-foreground text-sm leading-relaxed mb-6">
                   {template.description}
                 </p>
               </div>

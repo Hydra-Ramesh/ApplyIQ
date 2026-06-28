@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Sparkles, X, Check, Loader2, ArrowRight } from 'lucide-react';
-import { useAuthStore } from '../../../shared/hooks/useAuthStore';
 
 interface Props {
   isOpen: boolean;
@@ -9,18 +8,33 @@ interface Props {
 
 export function UpgradeModal({ isOpen, onClose }: Props) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const { upgradeToPro } = useAuthStore();
 
   if (!isOpen) return null;
 
-  const handleUpgrade = () => {
+  const handleUpgrade = async () => {
     setIsProcessing(true);
-    // Simulate Stripe Redirect
-    setTimeout(() => {
-      upgradeToPro();
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/stripe/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          returnUrl: window.location.href
+        })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to initiate checkout');
+      
+      // Redirect to Stripe Checkout URL
+      window.location.href = data.url;
+    } catch (error: any) {
+      alert(error.message);
       setIsProcessing(false);
-      onClose();
-    }, 1500);
+    }
   };
 
   return (

@@ -47,9 +47,12 @@ export const LatexEditor = React.memo(({ value, onChange, onEditorMount }: Latex
           const fullContext = model.getValue();
 
           try {
-            const res = await fetch(`${import.meta.env.VITE_AI_URL}/resume/autocomplete`, {
+            const res = await fetch(`${import.meta.env.VITE_AI_URL}/api/v1/resume/autocomplete`, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem('token')}`
+              },
               body: JSON.stringify({ prefix, context: fullContext }),
             });
 

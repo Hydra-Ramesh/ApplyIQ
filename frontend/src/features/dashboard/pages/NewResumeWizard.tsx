@@ -43,10 +43,21 @@ export function NewResumeWizard() {
       
       const response = await fetch(`${import.meta.env.VITE_AI_URL}/api/v1/resume/generate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ form_data: payload })
       });
       
+      if (!response.ok) {
+        if (response.status === 403) {
+          alert("You have reached your free tier limit of 5 AI Resume Generations. Please upgrade to Pro to unlock unlimited generations!");
+          return;
+        }
+        throw new Error("Failed to generate resume");
+      }
+
       const data = await response.json();
       
       if (data.tex_code) {
@@ -69,58 +80,58 @@ export function NewResumeWizard() {
       <div className="max-w-4xl w-full mx-auto">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
               <Sparkles className="w-8 h-8 text-blue-400" />
               AI Resume Generator
             </h1>
-            <p className="text-white/60">Build unlimited sections and bullet points dynamically.</p>
+            <p className="text-muted-foreground">Build unlimited sections and bullet points dynamically.</p>
           </div>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 relative overflow-hidden">
+        <div className="bg-secondary backdrop-blur-xl border border-border rounded-2xl p-8 relative overflow-hidden">
           
           {/* Progress Bar */}
           <div className="flex gap-2 mb-8">
             {[1, 2, 3, 4].map((step) => (
-              <div key={step} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${step <= currentStep ? 'bg-blue-500' : 'bg-white/10'}`} />
+              <div key={step} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${step <= currentStep ? 'bg-blue-500' : 'bg-secondary'}`} />
             ))}
           </div>
 
           {/* STEP 1: Personal Info */}
           {currentStep === 1 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-              <h2 className="text-2xl font-semibold text-white mb-4">Personal Information</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">Personal Information</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/70">First Name</label>
-                  <input value={personalInfo.firstName} onChange={(e) => setPersonalInfo({...personalInfo, firstName: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white placeholder-white/30 focus:border-blue-500 outline-none transition-all" placeholder="John" />
+                  <label className="text-sm font-medium text-muted-foreground">First Name</label>
+                  <input value={personalInfo.firstName} onChange={(e) => setPersonalInfo({...personalInfo, firstName: e.target.value})} className="w-full bg-background border border-border rounded-lg p-3 text-foreground placeholder:text-muted-foreground focus:border-blue-500 outline-none transition-all" placeholder="John" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/70">Last Name</label>
-                  <input value={personalInfo.lastName} onChange={(e) => setPersonalInfo({...personalInfo, lastName: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white placeholder-white/30 focus:border-blue-500 outline-none transition-all" placeholder="Doe" />
+                  <label className="text-sm font-medium text-muted-foreground">Last Name</label>
+                  <input value={personalInfo.lastName} onChange={(e) => setPersonalInfo({...personalInfo, lastName: e.target.value})} className="w-full bg-background border border-border rounded-lg p-3 text-foreground placeholder:text-muted-foreground focus:border-blue-500 outline-none transition-all" placeholder="Doe" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/70">Email</label>
-                  <input value={personalInfo.email} onChange={(e) => setPersonalInfo({...personalInfo, email: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white placeholder-white/30 focus:border-blue-500 outline-none transition-all" placeholder="john@example.com" />
+                  <label className="text-sm font-medium text-muted-foreground">Email</label>
+                  <input value={personalInfo.email} onChange={(e) => setPersonalInfo({...personalInfo, email: e.target.value})} className="w-full bg-background border border-border rounded-lg p-3 text-foreground placeholder:text-muted-foreground focus:border-blue-500 outline-none transition-all" placeholder="john@example.com" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/70">Phone</label>
-                  <input value={personalInfo.phone} onChange={(e) => setPersonalInfo({...personalInfo, phone: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white placeholder-white/30 focus:border-blue-500 outline-none transition-all" placeholder="+1 (555) 123-4567" />
+                  <label className="text-sm font-medium text-muted-foreground">Phone</label>
+                  <input value={personalInfo.phone} onChange={(e) => setPersonalInfo({...personalInfo, phone: e.target.value})} className="w-full bg-background border border-border rounded-lg p-3 text-foreground placeholder:text-muted-foreground focus:border-blue-500 outline-none transition-all" placeholder="+1 (555) 123-4567" />
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/70">Address / Location</label>
-                  <input value={personalInfo.address} onChange={(e) => setPersonalInfo({...personalInfo, address: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white placeholder-white/30 focus:border-blue-500 outline-none transition-all" placeholder="City, State / Full Address" />
+                  <label className="text-sm font-medium text-muted-foreground">Address / Location</label>
+                  <input value={personalInfo.address} onChange={(e) => setPersonalInfo({...personalInfo, address: e.target.value})} className="w-full bg-background border border-border rounded-lg p-3 text-foreground placeholder:text-muted-foreground focus:border-blue-500 outline-none transition-all" placeholder="City, State / Full Address" />
                 </div>
               </div>
 
               {/* Dynamic Links */}
-              <div className="pt-4 border-t border-white/10">
+              <div className="pt-4 border-t border-border">
                 <div className="flex justify-between items-center mb-4">
-                  <label className="text-sm font-medium text-white/70">Professional Links</label>
+                  <label className="text-sm font-medium text-muted-foreground">Professional Links</label>
                   <button onClick={() => setPersonalInfo({...personalInfo, links: [...personalInfo.links, { label: '', url: '' }]})} className="text-xs flex items-center gap-1 text-blue-400 hover:text-blue-300">
                     <Plus className="w-4 h-4" /> Add Link
                   </button>
@@ -132,17 +143,17 @@ export function NewResumeWizard() {
                       <input 
                         value={link.label} 
                         onChange={(e) => { const newLinks = [...personalInfo.links]; newLinks[idx].label = e.target.value; setPersonalInfo({...personalInfo, links: newLinks}); }} 
-                        className="w-1/3 bg-black/40 border border-white/10 rounded-lg p-3 text-white placeholder-white/30 focus:border-blue-500 outline-none transition-all" 
+                        className="w-1/3 bg-background border border-border rounded-lg p-3 text-foreground placeholder:text-muted-foreground focus:border-blue-500 outline-none transition-all" 
                         placeholder="Label (e.g., YouTube)" 
                       />
                       <input 
                         value={link.url} 
                         onChange={(e) => { const newLinks = [...personalInfo.links]; newLinks[idx].url = e.target.value; setPersonalInfo({...personalInfo, links: newLinks}); }} 
-                        className="flex-1 bg-black/40 border border-white/10 rounded-lg p-3 text-white placeholder-white/30 focus:border-blue-500 outline-none transition-all" 
+                        className="flex-1 bg-background border border-border rounded-lg p-3 text-foreground placeholder:text-muted-foreground focus:border-blue-500 outline-none transition-all" 
                         placeholder="URL (e.g., youtube.com/@chef)" 
                       />
                       {personalInfo.links.length > 1 && (
-                        <button onClick={() => { const newLinks = personalInfo.links.filter((_, i) => i !== idx); setPersonalInfo({...personalInfo, links: newLinks}); }} className="p-3 text-white/30 hover:text-red-400 transition-colors">
+                        <button onClick={() => { const newLinks = personalInfo.links.filter((_, i) => i !== idx); setPersonalInfo({...personalInfo, links: newLinks}); }} className="p-3 text-muted-foreground hover:text-red-400 transition-colors">
                           <Trash2 className="w-5 h-5" />
                         </button>
                       )}
@@ -157,41 +168,41 @@ export function NewResumeWizard() {
           {currentStep === 2 && (
             <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold text-white">Education</h2>
+                <h2 className="text-2xl font-semibold text-foreground">Education</h2>
                 <button onClick={() => setEducation([...education, { university: '', degree: '', location: '', startDate: '', endDate: '' }])} className="text-sm flex items-center gap-1 text-blue-400 hover:text-blue-300">
                   <Plus className="w-4 h-4" /> Add Education
                 </button>
               </div>
               
               {education.map((edu, idx) => (
-                <div key={idx} className="p-5 bg-black/20 rounded-xl border border-white/5 relative group">
+                <div key={idx} className="p-5 bg-card rounded-xl border border-border relative group">
                   {education.length > 1 && (
-                    <button onClick={() => setEducation(education.filter((_, i) => i !== idx))} className="absolute top-4 right-4 text-white/30 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => setEducation(education.filter((_, i) => i !== idx))} className="absolute top-4 right-4 text-muted-foreground hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-white/50">University</label>
-                      <input value={edu.university} onChange={(e) => { const newEdu = [...education]; newEdu[idx].university = e.target.value; setEducation(newEdu); }} className="w-full bg-transparent border-b border-white/10 p-2 text-white outline-none focus:border-blue-500" placeholder="Stanford University" />
+                      <label className="text-xs font-medium text-muted-foreground">University</label>
+                      <input value={edu.university} onChange={(e) => { const newEdu = [...education]; newEdu[idx].university = e.target.value; setEducation(newEdu); }} className="w-full bg-transparent border-b border-border p-2 text-foreground outline-none focus:border-blue-500" placeholder="Stanford University" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-white/50">Degree</label>
-                      <input value={edu.degree} onChange={(e) => { const newEdu = [...education]; newEdu[idx].degree = e.target.value; setEducation(newEdu); }} className="w-full bg-transparent border-b border-white/10 p-2 text-white outline-none focus:border-blue-500" placeholder="BS Computer Science" />
+                      <label className="text-xs font-medium text-muted-foreground">Degree</label>
+                      <input value={edu.degree} onChange={(e) => { const newEdu = [...education]; newEdu[idx].degree = e.target.value; setEducation(newEdu); }} className="w-full bg-transparent border-b border-border p-2 text-foreground outline-none focus:border-blue-500" placeholder="BS Computer Science" />
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-white/50">Location</label>
-                      <input value={edu.location} onChange={(e) => { const newEdu = [...education]; newEdu[idx].location = e.target.value; setEducation(newEdu); }} className="w-full bg-transparent border-b border-white/10 p-2 text-white outline-none focus:border-blue-500" placeholder="Stanford, CA" />
+                      <label className="text-xs font-medium text-muted-foreground">Location</label>
+                      <input value={edu.location} onChange={(e) => { const newEdu = [...education]; newEdu[idx].location = e.target.value; setEducation(newEdu); }} className="w-full bg-transparent border-b border-border p-2 text-foreground outline-none focus:border-blue-500" placeholder="Stanford, CA" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-white/50">Start Date</label>
-                      <input value={edu.startDate} onChange={(e) => { const newEdu = [...education]; newEdu[idx].startDate = e.target.value; setEducation(newEdu); }} className="w-full bg-transparent border-b border-white/10 p-2 text-white outline-none focus:border-blue-500" placeholder="Aug 2018" />
+                      <label className="text-xs font-medium text-muted-foreground">Start Date</label>
+                      <input value={edu.startDate} onChange={(e) => { const newEdu = [...education]; newEdu[idx].startDate = e.target.value; setEducation(newEdu); }} className="w-full bg-transparent border-b border-border p-2 text-foreground outline-none focus:border-blue-500" placeholder="Aug 2018" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-white/50">End Date</label>
-                      <input value={edu.endDate} onChange={(e) => { const newEdu = [...education]; newEdu[idx].endDate = e.target.value; setEducation(newEdu); }} className="w-full bg-transparent border-b border-white/10 p-2 text-white outline-none focus:border-blue-500" placeholder="May 2022" />
+                      <label className="text-xs font-medium text-muted-foreground">End Date</label>
+                      <input value={edu.endDate} onChange={(e) => { const newEdu = [...education]; newEdu[idx].endDate = e.target.value; setEducation(newEdu); }} className="w-full bg-transparent border-b border-border p-2 text-foreground outline-none focus:border-blue-500" placeholder="May 2022" />
                     </div>
                   </div>
                 </div>
@@ -203,57 +214,57 @@ export function NewResumeWizard() {
           {currentStep === 3 && (
             <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold text-white">Experience</h2>
+                <h2 className="text-2xl font-semibold text-foreground">Experience</h2>
                 <button onClick={() => setExperience([...experience, { role: '', company: '', location: '', startDate: '', endDate: '', bullets: [''] }])} className="text-sm flex items-center gap-1 text-blue-400 hover:text-blue-300">
                   <Plus className="w-4 h-4" /> Add Experience
                 </button>
               </div>
               
               {experience.map((exp, expIdx) => (
-                <div key={expIdx} className="p-5 bg-black/20 rounded-xl border border-white/5 relative group">
+                <div key={expIdx} className="p-5 bg-card rounded-xl border border-border relative group">
                   {experience.length > 1 && (
-                    <button onClick={() => setExperience(experience.filter((_, i) => i !== expIdx))} className="absolute top-4 right-4 text-white/30 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => setExperience(experience.filter((_, i) => i !== expIdx))} className="absolute top-4 right-4 text-muted-foreground hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-white/50">Role</label>
-                      <input value={exp.role} onChange={(e) => { const newExp = [...experience]; newExp[expIdx].role = e.target.value; setExperience(newExp); }} className="w-full bg-transparent border-b border-white/10 p-2 text-white outline-none focus:border-blue-500" placeholder="Software Engineer" />
+                      <label className="text-xs font-medium text-muted-foreground">Role</label>
+                      <input value={exp.role} onChange={(e) => { const newExp = [...experience]; newExp[expIdx].role = e.target.value; setExperience(newExp); }} className="w-full bg-transparent border-b border-border p-2 text-foreground outline-none focus:border-blue-500" placeholder="Software Engineer" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-white/50">Company</label>
-                      <input value={exp.company} onChange={(e) => { const newExp = [...experience]; newExp[expIdx].company = e.target.value; setExperience(newExp); }} className="w-full bg-transparent border-b border-white/10 p-2 text-white outline-none focus:border-blue-500" placeholder="Google" />
+                      <label className="text-xs font-medium text-muted-foreground">Company</label>
+                      <input value={exp.company} onChange={(e) => { const newExp = [...experience]; newExp[expIdx].company = e.target.value; setExperience(newExp); }} className="w-full bg-transparent border-b border-border p-2 text-foreground outline-none focus:border-blue-500" placeholder="Google" />
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-4 mb-6">
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-white/50">Location</label>
-                      <input value={exp.location} onChange={(e) => { const newExp = [...experience]; newExp[expIdx].location = e.target.value; setExperience(newExp); }} className="w-full bg-transparent border-b border-white/10 p-2 text-white outline-none focus:border-blue-500" placeholder="Mountain View, CA" />
+                      <label className="text-xs font-medium text-muted-foreground">Location</label>
+                      <input value={exp.location} onChange={(e) => { const newExp = [...experience]; newExp[expIdx].location = e.target.value; setExperience(newExp); }} className="w-full bg-transparent border-b border-border p-2 text-foreground outline-none focus:border-blue-500" placeholder="Mountain View, CA" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-white/50">Start Date</label>
-                      <input value={exp.startDate} onChange={(e) => { const newExp = [...experience]; newExp[expIdx].startDate = e.target.value; setExperience(newExp); }} className="w-full bg-transparent border-b border-white/10 p-2 text-white outline-none focus:border-blue-500" placeholder="Jun 2022" />
+                      <label className="text-xs font-medium text-muted-foreground">Start Date</label>
+                      <input value={exp.startDate} onChange={(e) => { const newExp = [...experience]; newExp[expIdx].startDate = e.target.value; setExperience(newExp); }} className="w-full bg-transparent border-b border-border p-2 text-foreground outline-none focus:border-blue-500" placeholder="Jun 2022" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-white/50">End Date</label>
-                      <input value={exp.endDate} onChange={(e) => { const newExp = [...experience]; newExp[expIdx].endDate = e.target.value; setExperience(newExp); }} className="w-full bg-transparent border-b border-white/10 p-2 text-white outline-none focus:border-blue-500" placeholder="Present" />
+                      <label className="text-xs font-medium text-muted-foreground">End Date</label>
+                      <input value={exp.endDate} onChange={(e) => { const newExp = [...experience]; newExp[expIdx].endDate = e.target.value; setExperience(newExp); }} className="w-full bg-transparent border-b border-border p-2 text-foreground outline-none focus:border-blue-500" placeholder="Present" />
                     </div>
                   </div>
                   
                   {/* Bullets */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <label className="text-xs font-medium text-white/50">Bullet Points</label>
+                      <label className="text-xs font-medium text-muted-foreground">Bullet Points</label>
                       <button onClick={() => { const newExp = [...experience]; newExp[expIdx].bullets.push(''); setExperience(newExp); }} className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
                         <Plus className="w-3 h-3" /> Add Bullet
                       </button>
                     </div>
                     {exp.bullets.map((bullet, bulletIdx) => (
                       <div key={bulletIdx} className="flex gap-2">
-                        <input value={bullet} onChange={(e) => { const newExp = [...experience]; newExp[expIdx].bullets[bulletIdx] = e.target.value; setExperience(newExp); }} className="flex-1 bg-black/40 border border-white/5 rounded-lg p-2 text-sm text-white outline-none focus:border-blue-500" placeholder="Developed a scalable microservice..." />
+                        <input value={bullet} onChange={(e) => { const newExp = [...experience]; newExp[expIdx].bullets[bulletIdx] = e.target.value; setExperience(newExp); }} className="flex-1 bg-background border border-border rounded-lg p-2 text-sm text-foreground outline-none focus:border-blue-500" placeholder="Developed a scalable microservice..." />
                         {exp.bullets.length > 1 && (
-                          <button onClick={() => { const newExp = [...experience]; newExp[expIdx].bullets = newExp[expIdx].bullets.filter((_, i) => i !== bulletIdx); setExperience(newExp); }} className="p-2 text-white/30 hover:text-red-400">
+                          <button onClick={() => { const newExp = [...experience]; newExp[expIdx].bullets = newExp[expIdx].bullets.filter((_, i) => i !== bulletIdx); setExperience(newExp); }} className="p-2 text-muted-foreground hover:text-red-400">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         )}
@@ -270,8 +281,8 @@ export function NewResumeWizard() {
             <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h2 className="text-2xl font-semibold text-white">Custom Sections</h2>
-                  <p className="text-sm text-white/50 mt-1">Add flexible sections like Projects, Certifications, or Hobbies.</p>
+                  <h2 className="text-2xl font-semibold text-foreground">Custom Sections</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Add flexible sections like Projects, Certifications, or Hobbies.</p>
                 </div>
                 <button onClick={() => setCustomSections([...customSections, { title: 'New Section', items: [{ name: '', date: '', bullets: [''] }] }])} className="text-sm flex items-center gap-1 text-blue-400 hover:text-blue-300 bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20">
                   <Plus className="w-4 h-4" /> Add Section
@@ -279,19 +290,19 @@ export function NewResumeWizard() {
               </div>
               
               {customSections.map((section, secIdx) => (
-                <div key={secIdx} className="p-6 bg-black/30 rounded-2xl border border-white/10 relative shadow-xl">
+                <div key={secIdx} className="p-6 bg-card rounded-2xl border border-border relative shadow-xl">
                   {/* Section Header */}
-                  <div className="flex gap-4 items-end mb-6 pb-4 border-b border-white/5">
+                  <div className="flex gap-4 items-end mb-6 pb-4 border-b border-border">
                     <div className="flex-1 space-y-1">
                       <label className="text-xs font-bold text-blue-400 uppercase tracking-wider">Section Title</label>
                       <input 
                         value={section.title} 
                         onChange={(e) => { const newSecs = [...customSections]; newSecs[secIdx].title = e.target.value; setCustomSections(newSecs); }} 
-                        className="w-full bg-transparent text-xl font-bold text-white outline-none focus:border-b border-blue-500 transition-all placeholder-white/20" 
+                        className="w-full bg-transparent text-xl font-bold text-foreground outline-none focus:border-b border-blue-500 transition-all placeholder:text-muted-foreground" 
                         placeholder="E.g., Projects, Honors, Hobbies" 
                       />
                     </div>
-                    <button onClick={() => setCustomSections(customSections.filter((_, i) => i !== secIdx))} className="p-2 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+                    <button onClick={() => setCustomSections(customSections.filter((_, i) => i !== secIdx))} className="p-2 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
                       <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
@@ -299,35 +310,35 @@ export function NewResumeWizard() {
                   {/* Section Items */}
                   <div className="space-y-6">
                     {section.items.map((item, itemIdx) => (
-                      <div key={itemIdx} className="p-4 bg-white/5 rounded-xl border border-white/5 relative group">
+                      <div key={itemIdx} className="p-4 bg-secondary rounded-xl border border-border relative group">
                         {section.items.length > 1 && (
-                          <button onClick={() => { const newSecs = [...customSections]; newSecs[secIdx].items = newSecs[secIdx].items.filter((_, i) => i !== itemIdx); setCustomSections(newSecs); }} className="absolute top-4 right-4 text-white/30 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => { const newSecs = [...customSections]; newSecs[secIdx].items = newSecs[secIdx].items.filter((_, i) => i !== itemIdx); setCustomSections(newSecs); }} className="absolute top-4 right-4 text-muted-foreground hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         )}
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div className="space-y-1">
-                            <label className="text-xs font-medium text-white/50">Item Name</label>
-                            <input value={item.name} onChange={(e) => { const newSecs = [...customSections]; newSecs[secIdx].items[itemIdx].name = e.target.value; setCustomSections(newSecs); }} className="w-full bg-transparent border-b border-white/10 p-2 text-white outline-none focus:border-blue-500" placeholder="E-Commerce App" />
+                            <label className="text-xs font-medium text-muted-foreground">Item Name</label>
+                            <input value={item.name} onChange={(e) => { const newSecs = [...customSections]; newSecs[secIdx].items[itemIdx].name = e.target.value; setCustomSections(newSecs); }} className="w-full bg-transparent border-b border-border p-2 text-foreground outline-none focus:border-blue-500" placeholder="E-Commerce App" />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-xs font-medium text-white/50">Date / Info (Optional)</label>
-                            <input value={item.date} onChange={(e) => { const newSecs = [...customSections]; newSecs[secIdx].items[itemIdx].date = e.target.value; setCustomSections(newSecs); }} className="w-full bg-transparent border-b border-white/10 p-2 text-white outline-none focus:border-blue-500" placeholder="Jan 2023 - Present" />
+                            <label className="text-xs font-medium text-muted-foreground">Date / Info (Optional)</label>
+                            <input value={item.date} onChange={(e) => { const newSecs = [...customSections]; newSecs[secIdx].items[itemIdx].date = e.target.value; setCustomSections(newSecs); }} className="w-full bg-transparent border-b border-border p-2 text-foreground outline-none focus:border-blue-500" placeholder="Jan 2023 - Present" />
                           </div>
                         </div>
                         
                         {/* Item Bullets */}
                         <div className="space-y-2 mt-4">
                           <div className="flex justify-between items-center">
-                            <label className="text-xs font-medium text-white/50">Bullet Points</label>
+                            <label className="text-xs font-medium text-muted-foreground">Bullet Points</label>
                             <button onClick={() => { const newSecs = [...customSections]; newSecs[secIdx].items[itemIdx].bullets.push(''); setCustomSections(newSecs); }} className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
                               <Plus className="w-3 h-3" /> Add Bullet
                             </button>
                           </div>
                           {item.bullets.map((bullet, bulletIdx) => (
                             <div key={bulletIdx} className="flex gap-2">
-                              <input value={bullet} onChange={(e) => { const newSecs = [...customSections]; newSecs[secIdx].items[itemIdx].bullets[bulletIdx] = e.target.value; setCustomSections(newSecs); }} className="flex-1 bg-black/40 border border-white/5 rounded-lg p-2 text-sm text-white outline-none focus:border-blue-500" placeholder="Describe what you did..." />
-                              <button onClick={() => { const newSecs = [...customSections]; newSecs[secIdx].items[itemIdx].bullets = newSecs[secIdx].items[itemIdx].bullets.filter((_, i) => i !== bulletIdx); setCustomSections(newSecs); }} className="p-2 text-white/30 hover:text-red-400">
+                              <input value={bullet} onChange={(e) => { const newSecs = [...customSections]; newSecs[secIdx].items[itemIdx].bullets[bulletIdx] = e.target.value; setCustomSections(newSecs); }} className="flex-1 bg-background border border-border rounded-lg p-2 text-sm text-foreground outline-none focus:border-blue-500" placeholder="Describe what you did..." />
+                              <button onClick={() => { const newSecs = [...customSections]; newSecs[secIdx].items[itemIdx].bullets = newSecs[secIdx].items[itemIdx].bullets.filter((_, i) => i !== bulletIdx); setCustomSections(newSecs); }} className="p-2 text-muted-foreground hover:text-red-400">
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
@@ -336,7 +347,7 @@ export function NewResumeWizard() {
                       </div>
                     ))}
                     
-                    <button onClick={() => { const newSecs = [...customSections]; newSecs[secIdx].items.push({ name: '', date: '', bullets: [''] }); setCustomSections(newSecs); }} className="w-full py-3 border border-dashed border-white/20 rounded-xl text-white/50 hover:text-white hover:border-white/50 hover:bg-white/5 transition-all text-sm font-medium flex items-center justify-center gap-2">
+                    <button onClick={() => { const newSecs = [...customSections]; newSecs[secIdx].items.push({ name: '', date: '', bullets: [''] }); setCustomSections(newSecs); }} className="w-full py-3 border border-dashed border-border rounded-xl text-muted-foreground hover:text-foreground hover:border-border hover:bg-secondary transition-all text-sm font-medium flex items-center justify-center gap-2">
                       <Plus className="w-4 h-4" /> Add Item to {section.title || 'Section'}
                     </button>
                   </div>
@@ -346,11 +357,11 @@ export function NewResumeWizard() {
           )}
 
           {/* Navigation Buttons */}
-          <div className="mt-12 flex items-center justify-between pt-6 border-t border-white/10">
+          <div className="mt-12 flex items-center justify-between pt-6 border-t border-border">
             <button
               onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
               disabled={currentStep === 1 || isGenerating}
-              className={`flex items-center gap-2 px-6 py-3 font-medium rounded-xl transition-colors ${currentStep === 1 ? 'opacity-0 pointer-events-none' : 'text-white/70 hover:text-white hover:bg-white/5'}`}
+              className={`flex items-center gap-2 px-6 py-3 font-medium rounded-xl transition-colors ${currentStep === 1 ? 'opacity-0 pointer-events-none' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}`}
             >
               <ArrowLeft className="w-4 h-4" />
               Back
@@ -368,7 +379,7 @@ export function NewResumeWizard() {
               <button
                 onClick={handleGenerate}
                 disabled={isGenerating}
-                className="flex items-center gap-2 px-8 py-3 bg-white text-black hover:bg-white/90 font-semibold rounded-xl transition-all hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.3)] disabled:opacity-70 disabled:pointer-events-none disabled:hover:scale-100"
+                className="flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-xl transition-all hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.3)] disabled:opacity-70 disabled:pointer-events-none disabled:hover:scale-100"
               >
                 {isGenerating ? (
                   <>

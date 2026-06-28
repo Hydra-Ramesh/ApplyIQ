@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-import { Bot, Sparkles, Zap, ShieldCheck, MapPin, Mail, Phone, Star, FileText, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Bot, Sparkles, Zap, ShieldCheck, MapPin, Mail, Phone, Star, FileText, CheckCircle2, ArrowRight, Flame, Target, Activity } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -11,6 +11,26 @@ export function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
   const textRefs = useRef<HTMLHeadingElement[]>([]);
   const cardsRef = useRef<HTMLDivElement>(null);
+
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/public/testimonials`)
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setTestimonials(data);
+        } else {
+          // Fallback static testimonials if none exist yet
+          setTestimonials([
+            { _id: '1', name: 'John Doe', role: 'Software Engineer II, Meta', rating: 5, message: 'ApplyIQ literally rewrote my entire experience section in 30 seconds. I got 3 interviews the next week.' },
+            { _id: '2', name: 'Alice Smith', role: 'Product Manager, Stripe', rating: 5, message: 'The LaTeX generation is flawless. This output is pixel-perfect and passes the ATS every time.' },
+            { _id: '3', name: 'Michael Kim', role: 'Data Scientist, Amazon', rating: 4, message: 'I didn\'t realize how weak my verbs were until the AI roasted my resume. My callback rate jumped from 2% to 15%.' }
+          ]);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     // 1. Hero Text Reveal Animation
@@ -56,6 +76,20 @@ export function Home() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-blue-500/30 overflow-x-hidden">
+      <style>{`
+        @keyframes gentle-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-15px); }
+        }
+        @keyframes gentle-float-delayed {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
       
       {/* --- FLOATING GLASS NAVBAR --- */}
       <div className="fixed top-6 left-0 right-0 z-50 flex justify-center px-6 pointer-events-none">
@@ -92,8 +126,9 @@ export function Home() {
       {/* --- HERO SECTION --- */}
       <section ref={heroRef} className="relative min-h-screen w-full flex flex-col items-center pt-32 pb-20 z-10">
         {/* Background Gradients */}
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[150px] pointer-events-none" />
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/30 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[150px] pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
 
         <div className="container mx-auto px-6 lg:px-12 flex flex-col items-center justify-center text-center z-10 w-full flex-1">
           {/* Hero Content */}
@@ -129,8 +164,70 @@ export function Home() {
           {/* Hero App Mockup */}
           <div className="w-full max-w-5xl mx-auto relative perspective-[2000px] mt-auto">
             {/* Fade out bottom of UI so it blends with background */}
-            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#050505] to-transparent z-20 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#050505] to-transparent z-40 pointer-events-none" />
             
+            {/* Widget 1: AI Roast */}
+            <div className="absolute -top-4 lg:top-4 -left-4 lg:-left-24 z-30 bg-[#0a0a0a]/90 backdrop-blur-2xl border border-red-500/30 p-5 rounded-3xl shadow-[0_0_50px_rgba(239,68,68,0.2)] flex flex-col gap-3 transition-transform duration-500 hover:scale-[1.15] hover:z-50 w-56 hidden sm:flex" style={{ animation: "gentle-float 7s ease-in-out infinite" }}>
+               <div className="flex items-center gap-3">
+                 <div className="bg-red-500/20 p-2.5 rounded-xl border border-red-500/30"><Flame className="text-red-400 w-6 h-6"/></div>
+                 <div className="text-left">
+                   <div className="text-white font-bold">AI Resume Roast</div>
+                   <div className="text-red-400 text-xs font-bold">Score: 42/100</div>
+                 </div>
+               </div>
+               <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden">
+                 <div className="w-[42%] h-full bg-gradient-to-r from-red-600 to-orange-500 rounded-full" />
+               </div>
+               <div className="text-[10px] text-slate-400 text-left leading-tight">Identified 3 weak action verbs and poor metric formatting.</div>
+            </div>
+
+            {/* Widget 2: Auto Tailor */}
+            <div className="absolute top-24 lg:top-36 -right-4 lg:-right-32 z-30 bg-[#0a0a0a]/90 backdrop-blur-2xl border border-blue-500/30 p-5 rounded-3xl shadow-[0_0_50px_rgba(59,130,246,0.2)] flex flex-col gap-3 transition-transform duration-500 hover:scale-[1.15] hover:z-50 w-64 hidden sm:flex" style={{ animation: "gentle-float-delayed 6s ease-in-out infinite 1s" }}>
+               <div className="flex items-center gap-3">
+                 <div className="bg-blue-500/20 p-2.5 rounded-xl border border-blue-500/30"><Target className="text-blue-400 w-6 h-6"/></div>
+                 <div className="text-left">
+                   <div className="text-white font-bold">Job Auto-Tailor</div>
+                   <div className="text-blue-400 text-xs font-bold">+14 Keywords Match</div>
+                 </div>
+               </div>
+               <div className="flex gap-2 flex-wrap">
+                 <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-[10px] rounded border border-blue-500/20">TypeScript</span>
+                 <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-[10px] rounded border border-blue-500/20">AWS</span>
+                 <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-[10px] rounded border border-blue-500/20">React</span>
+               </div>
+            </div>
+
+            {/* Widget 3: Cold Email */}
+            <div className="absolute bottom-32 lg:bottom-40 -left-4 lg:-left-20 z-30 bg-[#0a0a0a]/90 backdrop-blur-2xl border border-purple-500/30 p-5 rounded-3xl shadow-[0_0_50px_rgba(168,85,247,0.2)] flex flex-col gap-3 transition-transform duration-500 hover:scale-[1.15] hover:z-50 w-56 hidden sm:flex" style={{ animation: "gentle-float 8s ease-in-out infinite 0.5s" }}>
+               <div className="flex items-center gap-3">
+                 <div className="bg-purple-500/20 p-2.5 rounded-xl border border-purple-500/30"><Mail className="text-purple-400 w-6 h-6"/></div>
+                 <div className="text-left">
+                   <div className="text-white font-bold">Cold Email AI</div>
+                   <div className="text-purple-400 text-xs font-bold">Draft Generated</div>
+                 </div>
+               </div>
+               <div className="space-y-1.5 opacity-70">
+                 <div className="h-2 w-full bg-purple-500/20 rounded"></div>
+                 <div className="h-2 w-5/6 bg-purple-500/20 rounded"></div>
+                 <div className="h-2 w-4/6 bg-purple-500/20 rounded"></div>
+               </div>
+            </div>
+
+            {/* Widget 4: ATS Optimizer */}
+            <div className="absolute bottom-12 lg:bottom-16 -right-4 lg:-right-24 z-30 bg-[#0a0a0a]/90 backdrop-blur-2xl border border-emerald-500/30 p-5 rounded-3xl shadow-[0_0_50px_rgba(16,185,129,0.2)] flex flex-col gap-3 transition-transform duration-500 hover:scale-[1.15] hover:z-50 w-64 hidden sm:flex" style={{ animation: "gentle-float-delayed 7s ease-in-out infinite 1.5s" }}>
+               <div className="flex items-center gap-3">
+                 <div className="bg-emerald-500/20 p-2.5 rounded-xl border border-emerald-500/30"><Activity className="text-emerald-400 w-6 h-6"/></div>
+                 <div className="text-left flex-1">
+                   <div className="text-white font-bold">ATS Optimizer</div>
+                   <div className="text-emerald-400 text-xs font-bold">Parse Success: 100%</div>
+                 </div>
+                 <div className="w-10 h-10 rounded-full border-4 border-emerald-500/20 border-t-emerald-400 flex items-center justify-center">
+                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                 </div>
+               </div>
+               <div className="text-[10px] text-slate-400 text-left leading-tight mt-1">Structure, margins, and fonts are machine-readable.</div>
+            </div>
+
             <div className="relative rounded-t-2xl border border-white/10 border-b-0 bg-[#0a0a0a]/80 backdrop-blur-xl overflow-hidden shadow-2xl shadow-blue-500/10 transform rotate-x-[15deg] hover:rotate-x-[5deg] transition-transform duration-1000 ease-out flex flex-col h-[400px]">
               
               {/* App Header */}
@@ -281,58 +378,41 @@ export function Home() {
       </section>
 
       {/* --- WALL OF LOVE (TESTIMONIALS) --- */}
-      <section id="testimonials" className="py-24 relative z-10 bg-[#0a0a0a]">
+      <section id="testimonials" className="py-24 relative z-10 bg-[#0a0a0a] overflow-hidden">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-5xl font-bold mb-4">Wall of Love</h2>
-            <p className="text-slate-400 max-w-2xl mx-auto">Don't just take our word for it. See what our users are saying.</p>
+            <p className="text-slate-400 max-w-2xl mx-auto mb-6">Don't just take our word for it. See what our users are saying.</p>
+            <Link to="/feedback" className="inline-flex items-center gap-2 px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white font-medium rounded-full transition-colors border border-white/10">
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> Share your experience
+            </Link>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Testimonial 1 */}
-            <div className="bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl hover:bg-white/10 transition-colors">
-              <div className="flex text-yellow-500 mb-4">
-                <Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" />
-              </div>
-              <p className="text-slate-300 mb-6 italic leading-relaxed">"ApplyIQ literally rewrote my entire experience section in 30 seconds. The bullet points sounded like I was a Staff Engineer at Google. I got 3 interviews the next week."</p>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold">JD</div>
-                <div>
-                  <h4 className="font-bold text-white">John Doe</h4>
-                  <p className="text-sm text-slate-500">Software Engineer II, Meta</p>
+          <div className="relative flex overflow-x-hidden group">
+            <div className="flex w-max animate-[marquee_40s_linear_infinite] group-hover:[animation-play-state:paused]">
+              {/* Render twice for seamless loop */}
+              {[...testimonials, ...testimonials].map((t, idx) => (
+                <div key={`${t._id}-${idx}`} className="w-80 md:w-96 mx-4 bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl hover:bg-white/10 transition-colors shrink-0 whitespace-normal">
+                  <div className="flex text-yellow-500 mb-4">
+                    {[...Array(t.rating || 5)].map((_, i) => <Star key={i} className="w-5 h-5 fill-current" />)}
+                  </div>
+                  <p className="text-slate-300 mb-6 italic leading-relaxed">"{t.message}"</p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold uppercase shrink-0">
+                      {t.name.substring(0, 2)}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white leading-tight">{t.name}</h4>
+                      <p className="text-xs text-slate-500 mt-1">{t.role}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-
-            {/* Testimonial 2 */}
-            <div className="bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl hover:bg-white/10 transition-colors">
-              <div className="flex text-yellow-500 mb-4">
-                <Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" />
-              </div>
-              <p className="text-slate-300 mb-6 italic leading-relaxed">"The LaTeX generation is flawless. I've tried other builders and they always mess up the margins or fonts. This output is pixel-perfect and passes the ATS every time."</p>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 font-bold">AS</div>
-                <div>
-                  <h4 className="font-bold text-white">Alice Smith</h4>
-                  <p className="text-sm text-slate-500">Product Manager, Stripe</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Testimonial 3 */}
-            <div className="bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl hover:bg-white/10 transition-colors">
-              <div className="flex text-yellow-500 mb-4">
-                <Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" />
-              </div>
-              <p className="text-slate-300 mb-6 italic leading-relaxed">"I didn't realize how weak my verbs were until the AI roasted my resume. After applying the AI suggestions, my callback rate jumped from 2% to 15%."</p>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-pink-500/20 border border-pink-500/30 flex items-center justify-center text-pink-400 font-bold">MK</div>
-                <div>
-                  <h4 className="font-bold text-white">Michael Kim</h4>
-                  <p className="text-sm text-slate-500">Data Scientist, Amazon</p>
-                </div>
-              </div>
-            </div>
+            
+            {/* Gradient faded edges */}
+            <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#0a0a0a] to-transparent pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#0a0a0a] to-transparent pointer-events-none" />
           </div>
         </div>
       </section>

@@ -83,3 +83,4 @@ uuid_utils==0.15.0
 uvicorn==0.39.0
 yarl==1.22.0
 zstandard==0.25.0
+pyjwt==2.13.0

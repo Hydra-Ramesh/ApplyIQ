@@ -21,9 +21,12 @@ export function JobTailorModal({ isOpen, onClose }: Props) {
     setError(null);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_AI_URL}/resume/tailor`, {
+      const response = await fetch(`${import.meta.env.VITE_AI_URL}/api/v1/resume/tailor`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ tex_code: code, job_description: jobDescription }),
       });
 

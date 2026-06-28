@@ -12,6 +12,8 @@ export interface IUser extends Document {
   subscriptionTier: 'free' | 'pro';
   stripeCustomerId?: string;
   isAdmin: boolean;
+  copilotChats: number;
+  resumesGenerated: number;
   icons: { name: string; url: string }[];
   createdAt: Date;
 }
@@ -28,6 +30,8 @@ const UserSchema: Schema = new Schema({
   subscriptionTier: { type: String, enum: ['free', 'pro'], default: 'free' },
   stripeCustomerId: { type: String },
   isAdmin: { type: Boolean, default: false },
+  copilotChats: { type: Number, default: 0 },
+  resumesGenerated: { type: Number, default: 0 },
   icons: [{ 
     name: { type: String, required: true },
     url: { type: String, required: true }

@@ -43,7 +43,7 @@ export const sendRegisterEmail = async (email: string, otp: string) => {
               
               <p>This secure code will expire in 15 minutes. If you didn't create an account with ApplyIQ, you can safely ignore this email.</p>
               
-              <a href="http://localhost:5173/verify-email?email=${encodeURIComponent(email)}" class="button">Verify Email Now</a>
+              <a href="${env.FRONTEND_URL}/verify-email?email=${encodeURIComponent(email)}" class="button">Verify Email Now</a>
             </div>
             <div class="footer">
               <p>&copy; ${new Date().getFullYear()} ApplyIQ. All rights reserved.</p>
@@ -104,7 +104,7 @@ export const sendNewDeviceEmail = async (email: string, deviceAgent: string) => 
               <p><strong>Not you?</strong><br>If you did not authorize this login, your account may be compromised. Please secure your account immediately by changing your password.</p>
               
               <div class="action-wrapper">
-                <a href="http://localhost:5173/dashboard/profile" class="button">Secure My Account</a>
+                <a href="${env.FRONTEND_URL}/dashboard/profile" class="button">Secure My Account</a>
               </div>
             </div>
             <div class="footer">
@@ -206,7 +206,7 @@ export const sendPasswordChangeSuccessEmail = async (email: string) => {
               <p>You can now log in using your new credentials to access your dashboard.</p>
               
               <div style="margin-top: 30px;">
-                <a href="http://localhost:5173/login" class="button">Log In to ApplyIQ</a>
+                <a href="${env.FRONTEND_URL}/login" class="button">Log In to ApplyIQ</a>
               </div>
               
               <p style="margin-top: 30px; font-size: 14px; color: #999;">If you did not perform this action, please reset your password or contact our support team immediately.</p>

@@ -4,6 +4,9 @@ import { authService } from './auth.service';
 import cloudinary from '../../shared/config/cloudinary';
 import { AuthRequest } from '../../shared/middlewares/auth.middleware';
 import { env } from '../../shared/config/env';
+import User from './user.model';
+import Resume from '../resume/resume.model';
+import { ZipArchive } from 'archiver';
 
 export class AuthController {
   async register(req: Request, res: Response, next: NextFunction) {
@@ -35,6 +38,45 @@ export class AuthController {
       );
 
       res.status(200).json({ token, message: 'Email verified successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getMe(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Return a fresh token so the frontend can update its state instantly
+      const token = jwt.sign(
+        {
+          userId: user._id,
+          email: user.email,
+          isAdmin: user.isAdmin,
+          name: user.name,
+          avatarUrl: user.avatarUrl,
+        },
+        env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      res.status(200).json({ 
+        token,
+        user: {
+          id: user._id,
+          email: user.email,
+          name: user.name,
+          avatarUrl: user.avatarUrl,
+          subscriptionTier: user.isAdmin ? 'pro' : user.subscriptionTier,
+          isAdmin: user.isAdmin,
+          icons: user.icons,
+        }
+      });
     } catch (error) {
       next(error);
     }
@@ -199,6 +241,72 @@ export class AuthController {
       const userAgent = req.headers['user-agent'] || 'Unknown Device';
       await authService.logout(userId, userAgent);
       res.status(200).json({ message: 'Logged out successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteAccount(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      // Delete all resumes associated with the user
+      await Resume.deleteMany({ userId });
+      // Delete the user
+      await User.findByIdAndDelete(userId);
+      res.status(200).json({ message: 'Account and associated data deleted successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async exportData(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      
+      const user = await User.findById(userId).select('-password');
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const resumes = await Resume.find({ userId });
+      
+      const exportPayload = {
+        exportedAt: new Date().toISOString(),
+        user,
+        resumes
+      };
+
+      // Create a ZIP archive
+      const archive = new ZipArchive({
+        zlib: { level: 9 } // Sets the compression level.
+      });
+
+      // Listen for all archive data to be written
+      archive.on('error', function(err: any) {
+        throw err;
+      });
+
+      // Set headers for ZIP download
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename=applyiq_export.zip');
+
+      // Pipe archive data to the response
+      archive.pipe(res);
+
+      // Append data to the ZIP
+      archive.append(JSON.stringify(user, null, 2), { name: 'profile.json' });
+      archive.append(JSON.stringify(exportPayload, null, 2), { name: 'full_export_metadata.json' });
+
+      // Add each resume as a .tex file
+      resumes.forEach((resume, index) => {
+        // Create a safe filename based on the title
+        const safeTitle = resume.title ? resume.title.replace(/[^a-zA-Z0-9_-]/g, '_') : `resume_${index}`;
+        archive.append(resume.texCode, { name: `resumes/${safeTitle}.tex` });
+      });
+
+      // Finalize the archive (i.e. we are done appending files but streams have to finish yet)
+      await archive.finalize();
+
     } catch (error) {
       next(error);
     }

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Target, Flame, ChevronRight, ChevronLeft, Loader2, Minimize2, Maximize2 } from 'lucide-react';
+import { Target, Flame, ChevronRight, Loader2, Minimize2, Maximize2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { useEditorStore } from '../../../shared/hooks/useEditorStore';
 
 interface LiveInsightsWidgetProps {
   roastContent: string | null;

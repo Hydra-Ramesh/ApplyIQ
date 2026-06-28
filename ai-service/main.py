@@ -11,10 +11,10 @@ from modules.quality_checker.router import router as quality_router
 app = FastAPI(title="ApplyIQ - AI Service")
 
 # Configure CORS
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+frontend_url = os.getenv("FRONTEND_URL", "https://apply-iq-vozm.vercel.app")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url, "http://localhost:5173"],
+    allow_origins=[frontend_url, "https://apply-iq-vozm.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

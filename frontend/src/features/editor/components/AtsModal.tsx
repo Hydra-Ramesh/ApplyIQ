@@ -35,7 +35,10 @@ export function AtsModal({ isOpen, onClose, resumeId }: Props) {
     try {
       const response = await fetch(`${import.meta.env.VITE_AI_URL}/api/v1/resume/optimize-ats`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ resume_text: code, job_description: jobDescription }),
       });
 
@@ -79,7 +82,10 @@ export function AtsModal({ isOpen, onClose, resumeId }: Props) {
     try {
       const response = await fetch(`${import.meta.env.VITE_AI_URL}/api/v1/resume/tailor`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ tex_code: code, job_description: jobDescription }),
       });
 

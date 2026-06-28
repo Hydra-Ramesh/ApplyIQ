@@ -38,7 +38,10 @@ export function RoastModal({ isOpen, onClose }: Props) {
     try {
       const response = await fetch(`${import.meta.env.VITE_AI_URL}/api/v1/resume/roast-stream`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ tex_code: code }),
       });
 

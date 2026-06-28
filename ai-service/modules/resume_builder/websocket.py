@@ -5,12 +5,27 @@ import re
 import logging
 from .llm import get_llm
 from .prompts import ROAST_PROMPT, OPTIMIZE_ATS_PROMPT
+from .auth import verify_token
 
 ws_router = APIRouter()
 logger = logging.getLogger(__name__)
 
 @ws_router.websocket("/ws/live-analysis")
 async def live_analysis_websocket(websocket: WebSocket):
+    token = websocket.query_params.get("token")
+    if not token:
+        await websocket.close(code=1008)
+        return
+        
+    try:
+        user_data = verify_token(token)
+        if user_data.get("subscriptionTier", "free") != "pro":
+            await websocket.close(code=1008)
+            return
+    except Exception:
+        await websocket.close(code=1008)
+        return
+
     await websocket.accept()
     
     # Store currently running tasks so we can cancel them if new code arrives

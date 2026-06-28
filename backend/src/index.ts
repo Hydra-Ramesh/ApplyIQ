@@ -9,17 +9,26 @@ import profileRoutes from './modules/profile/profile.routes';
 import resumeRoutes from './modules/resume/resume.routes';
 import adminRoutes from './modules/admin/admin.routes';
 import templateRoutes from './modules/admin/template.routes';
+import stripeRoutes from './modules/stripe/stripe.routes';
+import publicRoutes from './modules/public/public.routes';
+import notificationRoutes from './modules/notification/notification.routes';
 import { errorHandler } from './shared/middlewares/errorHandler';
 import { env } from './shared/config/env';
+import { initSocketServer } from './socket';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(express.json());
-app.use(cors({ origin: [env.FRONTEND_URL, 'http://localhost:5173'], credentials: true }));
+// Middleware (Must come before routes)
+app.use(cors({ origin: [env.FRONTEND_URL, 'https://apply-iq-vozm.vercel.app'], credentials: true }));
 app.use(helmet());
 app.use(morgan('dev'));
+
+// Mount Stripe Routes (must come before express.json to preserve raw body for webhooks)
+app.use('/api/stripe', stripeRoutes);
+
+// JSON body parser (must come AFTER stripe routes)
+app.use(express.json());
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -41,15 +50,23 @@ app.use('/api/profile', limiter, profileRoutes);
 app.use('/api/resumes', limiter, resumeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/templates', templateRoutes);
+app.use('/api/public', publicRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
 
 // Database connection
 mongoose.connect(env.MONGO_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
-app.listen(env.PORT, () => {
-  console.log(`Server running on port ${env.PORT}`);
-});
+  .then(() => {
+    console.log('Connected to MongoDB');
+    // Start main API server
+    app.listen(env.PORT, () => {
+      console.log(`Server is running on port ${env.PORT}`);
+    });
+    // Start Socket.IO on 5001
+    initSocketServer(5001);
+  })
+  .catch((err) => {
+    console.error('Failed to connect to MongoDB', err);
+  });

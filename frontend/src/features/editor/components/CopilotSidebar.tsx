@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useEditorStore, DEFAULT_GREETING } from "../../../shared/hooks/useEditorStore";
-import { Send, Bot, Sparkles, Loader2, Trash, User } from "lucide-react";
+import { Send, Sparkles, Trash, User } from "lucide-react";
 import { updateResume } from "../../dashboard/api/resume.api";
 
 interface CopilotSidebarProps {
@@ -51,7 +51,10 @@ export function CopilotSidebar({ compilationError }: CopilotSidebarProps = {}) {
     try {
       const res = await fetch(`${import.meta.env.VITE_AI_URL}/api/v1/resume/copilot`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ 
           tex_code: code, 
           instruction: finalInstruction,
@@ -59,7 +62,12 @@ export function CopilotSidebar({ compilationError }: CopilotSidebarProps = {}) {
         })
       });
 
-      if (!res.ok) throw new Error('Failed to reach Copilot');
+      if (!res.ok) {
+        if (res.status === 403) {
+          throw new Error("You have reached your free tier limit for Copilot. Please upgrade to Pro to continue using AI features!");
+        }
+        throw new Error('Failed to reach Copilot');
+      }
       const data = await res.json();
       
       setCode(data.tex_code);
@@ -73,7 +81,7 @@ export function CopilotSidebar({ compilationError }: CopilotSidebarProps = {}) {
       }
     } catch (error) {
       console.error(error);
-      const errHistory = [...newHistory, { role: 'assistant' as const, content: "Sorry, I ran into an error while processing that request." }];
+      const errHistory = [...newHistory, { role: 'assistant' as const, content: error instanceof Error ? error.message : "Sorry, I ran into an error while processing that request." }];
       setChatHistory(errHistory);
       if (currentResumeId) {
         updateResume(currentResumeId, { chatHistory: errHistory }).catch(e => console.error("Failed to save chat history", e));

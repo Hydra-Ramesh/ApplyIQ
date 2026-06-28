@@ -14,7 +14,9 @@ export const cacheRoute = (ttlSeconds: number = 3600) => {
     }
 
     try {
-      const key = `cache:${req.originalUrl || req.url}`;
+      // Make cache key user-specific if it's an authenticated route
+      const userId = (req as any).user?.userId ? `:${(req as any).user.userId}` : '';
+      const key = `cache:${req.originalUrl || req.url}${userId}`;
       const cachedResponse = await redisCache.get<string>(key);
 
       if (cachedResponse) {

@@ -7,7 +7,8 @@ from core.redis_client import redis_cache
 from typing import Dict, Any, Optional, List
 from .llm import get_llm
 from .websocket import ws_router
-
+from fastapi import Depends
+from .auth import check_quota, require_pro
 router = APIRouter(prefix="/resume", tags=["Resume Builder"])
 router.include_router(ws_router)
 
@@ -40,7 +41,7 @@ class ResumeGenerateRequest(BaseModel):
     form_data: Dict[str, Any]
 
 @router.post("/rewrite-bullet")
-async def api_rewrite_bullet(req: RewriteRequest):
+async def api_rewrite_bullet(req: RewriteRequest, user: dict = Depends(require_pro)):
     try:
         cache_key = generate_cache_key("rewrite", req.raw_text)
         cached_result = redis_cache.get(cache_key)
@@ -56,7 +57,7 @@ async def api_rewrite_bullet(req: RewriteRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/optimize-ats")
-async def api_optimize_ats(req: AtsRequest):
+async def api_optimize_ats(req: AtsRequest, user: dict = Depends(require_pro)):
     try:
         cache_key = generate_cache_key("ats", req.resume_text + req.job_description)
         cached_result = redis_cache.get(cache_key)
@@ -72,7 +73,7 @@ async def api_optimize_ats(req: AtsRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/tailor")
-async def api_tailor_resume(req: TailorRequest):
+async def api_tailor_resume(req: TailorRequest, user: dict = Depends(require_pro)):
     try:
         cache_key = generate_cache_key("tailor", req.tex_code + req.job_description)
         cached_result = redis_cache.get(cache_key)
@@ -88,7 +89,7 @@ async def api_tailor_resume(req: TailorRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/autocomplete")
-async def api_autocomplete(req: AutocompleteRequest):
+async def api_autocomplete(req: AutocompleteRequest, user: dict = Depends(require_pro)):
     try:
         if len(req.prefix.strip()) < 5:
             return {"suggestion": ""}
@@ -107,7 +108,7 @@ async def api_autocomplete(req: AutocompleteRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/roast")
-async def api_roast_resume(req: RoastRequest):
+async def api_roast_resume(req: RoastRequest, user: dict = Depends(require_pro)):
     try:
         cache_key = generate_cache_key("roast", req.tex_code)
         cached_result = redis_cache.get(cache_key)
@@ -123,7 +124,7 @@ async def api_roast_resume(req: RoastRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/cold-email")
-async def api_cold_email(req: ColdEmailRequest):
+async def api_cold_email(req: ColdEmailRequest, user: dict = Depends(require_pro)):
     try:
         cache_key = generate_cache_key("coldemail", req.tex_code + req.target_info)
         cached_result = redis_cache.get(cache_key)
@@ -139,15 +140,15 @@ async def api_cold_email(req: ColdEmailRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/roast-stream")
-async def api_roast_stream(req: RoastRequest):
+async def api_roast_stream(req: RoastRequest, user: dict = Depends(require_pro)):
     return StreamingResponse(stream_roast(req.tex_code), media_type="text/event-stream")
 
 @router.post("/cold-email-stream")
-async def api_cold_email_stream(req: ColdEmailRequest):
+async def api_cold_email_stream(req: ColdEmailRequest, user: dict = Depends(require_pro)):
     return StreamingResponse(stream_cold_email(req.tex_code, req.target_info), media_type="text/event-stream")
 
 @router.post("/generate")
-async def api_generate_resume(req: ResumeGenerateRequest):
+async def api_generate_resume(req: ResumeGenerateRequest, user: dict = Depends(check_quota("generate", 5))):
     try:
         # Generate hash of form data to cache identical requests
         import json
@@ -171,12 +172,14 @@ class CopilotRequest(BaseModel):
     chat_history: Optional[List[Dict[str, Any]]] = None
 
 @router.post("/copilot")
-async def api_copilot_edit(req: CopilotRequest):
+async def api_copilot_edit(req: CopilotRequest, user: dict = Depends(check_quota("copilot", 1000))):
     try:
         # Don't cache copilot responses as they are highly dynamic
         result = copilot_edit(req.tex_code, req.instruction, req.chat_history)
         return result
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 from typing import Dict, Any, Optional

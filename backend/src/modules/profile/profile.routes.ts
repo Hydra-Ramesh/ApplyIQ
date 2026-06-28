@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import Profile from './profile.model';
 import { authenticate, AuthRequest } from '../../shared/middlewares/auth.middleware';
+import { cacheRoute } from '../../shared/middlewares/cache.middleware';
 
 // Stub for coding profile stats until the service is implemented
 const fetchLeetcodeStats = async (_username: string) => ({ rating: 0 });
@@ -42,7 +43,7 @@ router.put('/me', authenticate, async (req: AuthRequest, res) => {
 });
 
 // GET basic coding profile stats (e.g. LeetCode rating, GitHub repos)
-router.get('/me/coding-stats', authenticate, async (req: AuthRequest, res) => {
+router.get('/me/coding-stats', authenticate, cacheRoute(3600), async (req: AuthRequest, res) => {
   try {
     const profile = await Profile.findOne({ userId: req.user?.userId });
     if (!profile || !profile.codingProfiles) {

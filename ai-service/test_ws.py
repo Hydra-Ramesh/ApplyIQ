@@ -3,7 +3,7 @@ import websockets
 import json
 
 async def test():
-    uri = "ws://127.0.0.1:8000/api/v1/resume/ws/live-analysis"
+    uri = "wss://applyiq-ai-service.onrender.com/api/v1/resume/ws/live-analysis"
     async with websockets.connect(uri) as websocket:
         await websocket.send(json.dumps({
             "tex_code": "My latex resume",

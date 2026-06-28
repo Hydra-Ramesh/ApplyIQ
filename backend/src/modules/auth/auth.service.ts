@@ -21,7 +21,7 @@ export class AuthService {
     const otp = generateOTP();
     await redisCache.set(`register_pwd:${email}`, passwordHash, OTP_TTL);
     await redisCache.set(`register_otp:${email}`, otp, OTP_TTL);
-    await sendRegisterEmail(email, otp);
+    sendRegisterEmail(email, otp).catch(console.error);
   }
 
   async verifyEmail(email: string, otp: string) {
@@ -45,7 +45,7 @@ export class AuthService {
     await redisCache.delete(`register_pwd:${email}`);
     
     // Send welcome email with checkout link
-    await sendWelcomeEmail(email, env.CHECKOUT_URL);
+    sendWelcomeEmail(email, env.CHECKOUT_URL).catch(console.error);
     
     return user;
   }
@@ -59,7 +59,7 @@ export class AuthService {
 
     const otp = generateOTP();
     await redisCache.set(`register_otp:${email}`, otp, OTP_TTL);
-    await sendRegisterEmail(email, otp);
+    sendRegisterEmail(email, otp).catch(console.error);
   }
 
   async login(email: string, password: string, userAgent: string) {
@@ -73,7 +73,7 @@ export class AuthService {
       user.knownDevices.push(userAgent);
       await user.save();
       if (user.knownDevices.length > 1) {
-        await sendNewDeviceEmail(email, userAgent);
+        sendNewDeviceEmail(email, userAgent).catch(console.error);
       }
     }
 
@@ -97,7 +97,7 @@ export class AuthService {
 
     const otp = generateOTP();
     await redisCache.set(`reset_otp:${email}`, otp, OTP_TTL);
-    await sendOtpEmail(email, otp);
+    sendOtpEmail(email, otp).catch(console.error);
   }
 
   async resetPassword(email: string, otp: string, newPassword: string) {
@@ -113,7 +113,7 @@ export class AuthService {
     await user.save();
     
     await redisCache.delete(`reset_otp:${email}`);
-    await sendPasswordChangeSuccessEmail(email);
+    sendPasswordChangeSuccessEmail(email).catch(console.error);
   }
 
   async updateProfile(userId: string, data: { name?: string, avatarUrl?: string }) {
@@ -139,7 +139,7 @@ export class AuthService {
     user.knownDevices = []; // require re-auth
     await user.save();
     
-    await sendPasswordChangeSuccessEmail(user.email);
+    sendPasswordChangeSuccessEmail(user.email).catch(console.error);
   }
 
   async logout(userId: string, userAgent: string) {
