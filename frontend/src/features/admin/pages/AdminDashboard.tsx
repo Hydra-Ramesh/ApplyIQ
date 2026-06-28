@@ -114,31 +114,51 @@ export function AdminDashboard() {
   };
 
   const handleDeleteCareer = async (id: string) => {
-    await fetch(`${import.meta.env.VITE_API_URL}/admin/careers/${id}`, { method: 'DELETE', headers });
-    fetchCareers();
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/careers/${id}`, { method: 'DELETE', headers });
+    if (res.ok) {
+      toast.success("Role deleted successfully!");
+      fetchCareers();
+    } else {
+      toast.error("Failed to delete role.");
+    }
   };
 
   const handleDeleteBlog = async (id: string) => {
-    await fetch(`${import.meta.env.VITE_API_URL}/admin/blogs/${id}`, { method: 'DELETE', headers });
-    fetchBlogs();
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/blogs/${id}`, { method: 'DELETE', headers });
+    if (res.ok) {
+      toast.success("Blog post deleted successfully!");
+      fetchBlogs();
+    } else {
+      toast.error("Failed to delete blog post.");
+    }
   };
 
   const handleCreateCareer = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const payload = Object.fromEntries(formData.entries());
-    await fetch(`${import.meta.env.VITE_API_URL}/admin/careers`, { method: 'POST', headers, body: JSON.stringify(payload) });
-    e.currentTarget.reset();
-    fetchCareers();
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/careers`, { method: 'POST', headers, body: JSON.stringify(payload) });
+    if (res.ok) {
+      toast.success("Role added successfully!");
+      e.currentTarget.reset();
+      fetchCareers();
+    } else {
+      toast.error("Failed to add role.");
+    }
   };
 
   const handleCreateBlog = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const payload = Object.fromEntries(formData.entries());
-    await fetch(`${import.meta.env.VITE_API_URL}/admin/blogs`, { method: 'POST', headers, body: JSON.stringify(payload) });
-    e.currentTarget.reset();
-    fetchBlogs();
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/blogs`, { method: 'POST', headers, body: JSON.stringify(payload) });
+    if (res.ok) {
+      toast.success("Blog post published successfully!");
+      e.currentTarget.reset();
+      fetchBlogs();
+    } else {
+      toast.error("Failed to publish blog post.");
+    }
   };
 
   const handleToggleTestimonial = async (id: string) => {
