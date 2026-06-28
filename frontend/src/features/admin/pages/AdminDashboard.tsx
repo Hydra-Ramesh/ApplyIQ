@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuthStore } from "@/shared/hooks/useAuthStore";
-import { Shield, Users, FileText, Plus, Copy, Trash, Briefcase, BookOpen, MessageSquare, Send, X, Star, AlertTriangle, MessageCircle, CheckCircle } from "lucide-react";
+import { Shield, Users, FileText, Trash, Briefcase, BookOpen, MessageSquare, Send, X, Star, AlertTriangle, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { io } from "socket.io-client";
 
