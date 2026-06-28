@@ -18,7 +18,7 @@ export function AdminDashboard() {
   // Data States
   const [users, setUsers] = useState<any[]>([]);
   const [resumes, setResumes] = useState<any[]>([]);
-  const [templates, setTemplates] = useState<any[]>([]);
+  const [, setTemplates] = useState<any[]>([]);
   const [careers, setCareers] = useState<any[]>([]);
   const [blogs, setBlogs] = useState<any[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Bell, Check, Trash } from "lucide-react";
+import { Bell, Check } from "lucide-react";
 import { useAuthStore } from "../hooks/useAuthStore";
 import { io } from "socket.io-client";
 import { toast } from "sonner";
@@ -29,7 +29,7 @@ export function NotificationBell() {
     // Setup Socket
     const socket = io(socketUrl);
     socket.on('connect', () => {
-      socket.emit('join_room', user._id);
+      socket.emit('join_room', (user as any)._id || (user as any).id);
     });
 
     socket.on('new_notification', (notif) => {

@@ -1,6 +1,6 @@
 import { GenericPageLayout } from "../layouts/GenericPageLayout";
 import { Link } from "react-router-dom";
-import { Bot, Zap, ShieldCheck, Mail, Target } from "lucide-react";
+import { Bot, ShieldCheck, Mail, Target } from "lucide-react";
 
 export function FeaturesPage() {
   return (

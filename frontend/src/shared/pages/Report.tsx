@@ -18,7 +18,7 @@ export function Report() {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/public/reports`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, issue, userId: user?._id })
+        body: JSON.stringify({ name, email, issue, userId: (user as any)?._id || (user as any)?.id })
       });
       if (res.ok) {
         toast.success("Bug report submitted successfully! Our team will look into it.");
