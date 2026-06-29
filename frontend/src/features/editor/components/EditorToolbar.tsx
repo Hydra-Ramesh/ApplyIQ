@@ -33,7 +33,7 @@ export function EditorToolbar({ isCompiling, onCompile, onDownload, isSaving, on
   
   const { user } = useAuthStore();
   const { isHeatmapActive, toggleHeatmap, title, setTitle, isAutoCompile, toggleAutoCompile } = useEditorStore();
-  const isPro = user?.subscriptionTier === 'pro';
+  const isPro = user?.subscriptionTier === 'pro' || user?.isAdmin;
 
   const handleProFeatureClick = (setter: (val: boolean) => void) => {
     if (isPro) {

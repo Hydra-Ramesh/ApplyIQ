@@ -21,7 +21,7 @@ export const LatexEditor = React.memo(({ value, onChange, onEditorMount }: Latex
   const decorationIdsRef = useRef<string[]>([]);
 
   const { user } = useAuthStore();
-  const isPro = user?.subscriptionTier === 'pro';
+  const isPro = user?.subscriptionTier === 'pro' || user?.isAdmin;
   const { isHeatmapActive } = useEditorStore();
 
   useEffect(() => {
