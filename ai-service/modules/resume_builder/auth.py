@@ -38,12 +38,13 @@ def check_quota(feature_key: str, max_limit: int):
             raise HTTPException(status_code=401, detail="Authentication required")
             
         user_data = verify_token(token)
-        user_id = user_data.get("id")
+        user_id = user_data.get("id") or user_data.get("userId")
         # Ensure we properly fallback if subscriptionTier is missing
         tier = user_data.get("subscriptionTier", "free")
+        is_admin = user_data.get("isAdmin", False)
         
-        if tier == "pro":
-            # Pro users have no limits
+        if tier == "pro" or is_admin:
+            # Pro users and admins have no limits
             return user_data
             
         if not user_id:
@@ -79,8 +80,9 @@ def require_pro(request: Request):
         
     user_data = verify_token(token)
     tier = user_data.get("subscriptionTier", "free")
+    is_admin = user_data.get("isAdmin", False)
     
-    if tier != "pro":
+    if tier != "pro" and not is_admin:
         raise HTTPException(status_code=403, detail="This feature requires a Pro subscription.")
         
     return user_data

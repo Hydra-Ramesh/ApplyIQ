@@ -18,15 +18,8 @@ export function Home() {
     fetch(`${import.meta.env.VITE_API_URL}/public/testimonials`)
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setTestimonials(data);
-        } else {
-          // Fallback static testimonials if none exist yet
-          setTestimonials([
-            { _id: '1', name: 'John Doe', role: 'Software Engineer II, Meta', rating: 5, message: 'ApplyIQ literally rewrote my entire experience section in 30 seconds. I got 3 interviews the next week.' },
-            { _id: '2', name: 'Alice Smith', role: 'Product Manager, Stripe', rating: 5, message: 'The LaTeX generation is flawless. This output is pixel-perfect and passes the ATS every time.' },
-            { _id: '3', name: 'Michael Kim', role: 'Data Scientist, Amazon', rating: 4, message: 'I didn\'t realize how weak my verbs were until the AI roasted my resume. My callback rate jumped from 2% to 15%.' }
-          ]);
         }
       })
       .catch(() => {});
@@ -388,32 +381,38 @@ export function Home() {
             </Link>
           </div>
           
-          <div className="relative flex overflow-x-hidden group">
-            <div className="flex w-max animate-[marquee_40s_linear_infinite] group-hover:[animation-play-state:paused]">
-              {/* Render twice for seamless loop */}
-              {[...testimonials, ...testimonials].map((t, idx) => (
-                <div key={`${t._id}-${idx}`} className="w-80 md:w-96 mx-4 bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl hover:bg-white/10 transition-colors shrink-0 whitespace-normal">
-                  <div className="flex text-yellow-500 mb-4">
-                    {[...Array(t.rating || 5)].map((_, i) => <Star key={i} className="w-5 h-5 fill-current" />)}
-                  </div>
-                  <p className="text-slate-300 mb-6 italic leading-relaxed">"{t.message}"</p>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold uppercase shrink-0">
-                      {t.name.substring(0, 2)}
+          {testimonials.length > 0 ? (
+            <div className="relative flex overflow-x-hidden group">
+              <div className="flex w-max animate-[marquee_40s_linear_infinite] group-hover:[animation-play-state:paused]">
+                {/* Render twice for seamless loop */}
+                {[...testimonials, ...testimonials].map((t, idx) => (
+                  <div key={`${t._id}-${idx}`} className="w-80 md:w-96 mx-4 bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl hover:bg-white/10 transition-colors shrink-0 whitespace-normal">
+                    <div className="flex text-yellow-500 mb-4">
+                      {[...Array(t.rating || 5)].map((_, i) => <Star key={i} className="w-5 h-5 fill-current" />)}
                     </div>
-                    <div>
-                      <h4 className="font-bold text-white leading-tight">{t.name}</h4>
-                      <p className="text-xs text-slate-500 mt-1">{t.role}</p>
+                    <p className="text-slate-300 mb-6 italic leading-relaxed">"{t.message}"</p>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold uppercase shrink-0">
+                        {t.name.substring(0, 2)}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-white leading-tight">{t.name}</h4>
+                        <p className="text-xs text-slate-500 mt-1">{t.role}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              
+              {/* Gradient faded edges */}
+              <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#0a0a0a] to-transparent pointer-events-none" />
+              <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#0a0a0a] to-transparent pointer-events-none" />
             </div>
-            
-            {/* Gradient faded edges */}
-            <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#0a0a0a] to-transparent pointer-events-none" />
-            <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#0a0a0a] to-transparent pointer-events-none" />
-          </div>
+          ) : (
+            <div className="text-center text-slate-400 py-12">
+              <p>No testimonials yet. Be the first to share your experience!</p>
+            </div>
+          )}
         </div>
       </section>
 
