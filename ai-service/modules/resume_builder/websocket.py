@@ -19,7 +19,9 @@ async def live_analysis_websocket(websocket: WebSocket):
         
     try:
         user_data = verify_token(token)
-        if user_data.get("subscriptionTier", "free") != "pro":
+        is_pro = user_data.get("subscriptionTier", "free") == "pro"
+        is_admin = user_data.get("isAdmin", False)
+        if not (is_pro or is_admin):
             await websocket.close(code=1008)
             return
     except Exception:
